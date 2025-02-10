@@ -259,18 +259,21 @@ namespace Starcraft_Mod_Manager
                     logBoxWriteLine("FAILED TO LOAD: Unable to find metadata.txt for: " + Path.GetFileName(dir));
                     continue;
                 }
-                if (files.Length >= 2)
+                else if (files.Length >= 2)
                 {
                     logBoxWriteLine("WARNING: Multiple metadata.txt found for: " + dir);
+                    continue;
                 }
-
-                Mod currentMod = new Mod();
-                foreach (string line in File.ReadLines(files[0]))
+                else if (!Mod.TryCreate(files[0], out Mod currentMod))
                 {
-                    processLine(line, currentMod);
+                    logBoxWriteLine("WARNING: failed to create Mod using metadata located for: " + dir);
+                    continue;
                 }
-                currentMod.Path = Path.GetDirectoryName(files[0]);
-                modLists[(int)currentMod.Campaign].Add(currentMod);
+                else
+                {
+                    currentMod.Path = Path.GetDirectoryName(files[0]);
+                    modLists[(int)currentMod.Campaign].Add(currentMod);
+                }
             }
         }
 
@@ -403,89 +406,123 @@ namespace Starcraft_Mod_Manager
          */
         public void setInfoBoxes()
         {
-            if (File.Exists(sc2BasePath + @"\Maps\Campaign\metadata.txt"))
+            IEnumerable<(Campaign campaign, string metadataFilePath)> campaignsAndMetadataFilePaths = new[]
             {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(sc2BasePath + @"\Maps\Campaign\metadata.txt"))
-                {
-                    processLine(line, activeMod);
-                }
-                wolTitleBox.Text = activeMod.Title;
-                wolAuthorBox.Text = activeMod.Author;
-                wolVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                wolTitleBox.Text = "Default Campaign";
-                wolAuthorBox.Text = "Blizzard";
-                wolVersionBox.Text = "N/A";
-            }
+                (Campaign.WoL, CreateSc2FilePath(@"Maps\Campaign\metadata.txt")),
+                (Campaign.HotS, CreateSc2FilePath(@"Maps\Campaign\swarm\metadata.txt")),
+                (Campaign.LotV, CreateSc2FilePath(@"Maps\Campaign\void\metadata.txt")),
+                (Campaign.NCO, CreateSc2FilePath(@"Maps\Campaign\nova\metadata.txt")),
+            };
 
-            if (File.Exists(sc2BasePath + @"\Maps\Campaign\swarm\metadata.txt"))
+            foreach ((Campaign campaign, string metadataFilePath) in campaignsAndMetadataFilePaths)
             {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(sc2BasePath + @"\Maps\Campaign\swarm\metadata.txt"))
+                if (Mod.TryCreate(metadataFilePath, out Mod mod))
                 {
-                    processLine(line, activeMod);
+                    SetCampaignInfoBoxToMetadata(campaign, mod);
                 }
-                hotsTitleBox.Text = activeMod.Title;
-                hotsAuthorBox.Text = activeMod.Author;
-                hotsVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                hotsTitleBox.Text = "Default Campaign";
-                hotsAuthorBox.Text = "Blizzard";
-                hotsVersionBox.Text = "N/A";
-            }
-
-            if (File.Exists(sc2BasePath + @"\Maps\Campaign\void\metadata.txt"))
-            {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(sc2BasePath + @"\Maps\Campaign\void\metadata.txt"))
+                else
                 {
-                    processLine(line, activeMod);
+                    SetCampaignInfoBoxToDefault(campaign);
                 }
-                lotvTitleBox.Text = activeMod.Title;
-                lotvAuthorBox.Text = activeMod.Author;
-                lotvVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                lotvTitleBox.Text = "Default Campaign";
-                lotvAuthorBox.Text = "Blizzard";
-                lotvVersionBox.Text = "N/A";
-            }
-
-            if (File.Exists(sc2BasePath + @"\Maps\Campaign\nova\metadata.txt"))
-            {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(sc2BasePath + @"\Maps\Campaign\nova\metadata.txt"))
-                {
-                    processLine(line, activeMod);
-                }
-                ncoTitleBox.Text = activeMod.Title;
-                ncoAuthorBox.Text = activeMod.Author;
-                ncoVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                ncoTitleBox.Text = "Default Campaign";
-                ncoAuthorBox.Text = "Blizzard";
-                ncoVersionBox.Text = "N/A";
             }
         }
 
-        /* Handles a line pulled from metadata.txt and stores it in the mod object. */
-        private void processLine(string line, Mod mod)
+        private string CreateSc2FilePath(string path)
         {
-            String[] lineParts = line.Split(new[] { '=' }, 2);
-            if (lineParts[0].ToLower() == "title") mod.Title = lineParts[1];
-            if (lineParts[0].ToLower() == "desc") mod.Description = lineParts[1];
-            if (lineParts[0].ToLower() == "campaign") mod.SetCampaign(lineParts[1]);
-            if (lineParts[0].ToLower() == "version") mod.Version = lineParts[1];
-            if (lineParts[0].ToLower() == "author") mod.Author = lineParts[1];
-            //if (lineParts[0].ToLower() == "lotvprologue") mod.SetPrologue(lineParts[1]);
+            return Path.Combine(this.sc2BasePath, path);
+        }
+
+        private void SetCampaignInfoBoxToMetadata(Campaign campaign, Mod mod)
+        {
+            switch (campaign)
+            {
+                case Campaign.WoL:
+                    SetTextForTextBoxes(new[]
+                    {
+                        (wolTitleBox, mod.Title),
+                        (wolAuthorBox, mod.Author),
+                        (wolVersionBox, mod.Version),
+                    });
+                    break;
+
+                case Campaign.HotS:
+                    SetTextForTextBoxes(new[]
+                    {
+                        (hotsTitleBox, mod.Title),
+                        (hotsAuthorBox, mod.Author),
+                        (hotsVersionBox, mod.Version),
+                    });
+                    break;
+
+                case Campaign.LotV:
+                    SetTextForTextBoxes(new[]
+                    {
+                        (lotvTitleBox, mod.Title),
+                        (lotvAuthorBox, mod.Author),
+                        (lotvVersionBox, mod.Version),
+                    });
+                    break;
+
+                case Campaign.NCO:
+                    SetTextForTextBoxes(new[]
+                    {
+                        (ncoTitleBox, mod.Title),
+                        (ncoAuthorBox, mod.Author),
+                        (ncoVersionBox, mod.Version),
+                    });
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void SetCampaignInfoBoxToDefault(Campaign campaign)
+        {
+            if (campaign == Campaign.WoL)
+            {
+                SetTextForTextBoxes(new[]
+                {
+                    (wolTitleBox, "Default Campaign"),
+                    (wolAuthorBox, "Blizzard Campaign"),
+                    (wolVersionBox, "N/A"),
+                });
+            }
+            else if (campaign == Campaign.HotS)
+            {
+                SetTextForTextBoxes(new[]
+                {
+                    (hotsTitleBox, "Default Campaign"),
+                    (hotsAuthorBox, "Blizzard"),
+                    (hotsVersionBox, "N/A"),
+                });
+            }
+            else if (campaign == Campaign.LotV)
+            {
+                SetTextForTextBoxes(new[]
+                {
+                    (lotvAuthorBox, "Default Campaign"),
+                    (lotvAuthorBox, "Blizzard Campaign"),
+                    (lotvVersionBox, "N/A"),
+                });
+            }
+            else if (campaign == Campaign.NCO)
+            {
+                SetTextForTextBoxes(new[]
+                {
+                    (ncoTitleBox, "Default Campaign"),
+                    (ncoAuthorBox, "Blizzard Campaign"),
+                    (ncoVersionBox, "N/A"),
+                });
+            }
+        }
+
+        private void SetTextForTextBoxes(IEnumerable<(TextBox textBox, string textBoxText)> updates)
+        {
+            foreach ((TextBox textBox, string textBoxText) in updates)
+            {
+                textBox.Text = textBoxText;
+            }
         }
 
         /* Recursively copies all files and folders of a source folder to a target folder.
