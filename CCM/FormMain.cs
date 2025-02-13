@@ -98,13 +98,13 @@ namespace Starcraft_Mod_Manager
                 } catch (Exception)
                 {
                     //If we have any issues and need to exit, make the file and force a default path.  We can handle that just ahead.
-                    File.WriteAllText(PathUtils.PathForCcmConfig, @"C:\Program Files (x86)\StarCraft II\StarCraft II.exe");
+                    File.WriteAllText(PathUtils.PathForCcmConfig, CommonPath.DefaultStarcraft2Exe);
                 }
             }
 
             if (!File.Exists(PathUtils.PathForCcmConfig)) //If we have any unknown issues and the file doesn't exist, make it and force a default path.
             {
-                File.WriteAllText(PathUtils.PathForCcmConfig, @"C:\Program Files (x86)\StarCraft II\StarCraft II.exe");
+                File.WriteAllText(PathUtils.PathForCcmConfig, CommonPath.DefaultStarcraft2Exe);
             }
 
             pathForStarcraft2Exe = File.ReadLines(PathUtils.PathForCcmConfig).FirstOrDefault();
