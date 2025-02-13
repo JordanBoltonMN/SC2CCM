@@ -136,16 +136,16 @@ namespace Starcraft_Mod_Manager
             {
                 string fileName = Path.GetFileName(filePath);
                 // Folder with same name as file check
-                if (Directory.Exists(pathUtils.PathForMods + fileName))
+                if (Directory.Exists(pathUtils.PathForMod(fileName)))
                 {
-                    Directory.Delete(pathUtils.PathForMods + fileName, true);
+                    Directory.Delete(pathUtils.PathForMod(fileName), true);
                 }
-                if (File.Exists(pathUtils.PathForMods + fileName))
+                if (File.Exists(pathUtils.PathForMod(fileName)))
                 {
                     try
                     {
-                        File.Delete(pathUtils.PathForMods + fileName);
-                        File.Move(filePath, pathUtils.PathForMods + fileName);
+                        File.Delete(pathUtils.PathForMod(fileName));
+                        File.Move(filePath, pathUtils.PathForMod(fileName));
                         logBoxWriteLine("Moved " + fileName + " to Dependencies folder.");
                     } catch (IOException e)
                     {
@@ -155,7 +155,7 @@ namespace Starcraft_Mod_Manager
                 {
                     try
                     {
-                        File.Move(filePath, pathUtils.PathForMods + fileName);
+                        File.Move(filePath, pathUtils.PathForMod(fileName));
                         logBoxWriteLine("Moved " + fileName + " to Dependencies folder.");
                     } catch (IOException e)
                     {
@@ -168,16 +168,16 @@ namespace Starcraft_Mod_Manager
             {
                 string dirName = Path.GetFileName(dirPath);
                 // File with name name as folder check
-                if (File.Exists(pathUtils.PathForMods + dirName))
+                if (File.Exists(pathUtils.PathForMod(dirName)))
                 {
-                    File.Delete(pathUtils.PathForMods + dirName);
+                    File.Delete(pathUtils.PathForMod(dirName));
                 }
-                if (Directory.Exists(pathUtils.PathForMods + dirName))
+                if (Directory.Exists(pathUtils.PathForMod(dirName)))
                 {
                     try
                     {
-                        Directory.Delete(pathUtils.PathForMods + dirName, true);
-                        Directory.Move(dirPath, pathUtils.PathForMods + dirName);
+                        Directory.Delete(pathUtils.PathForMod(dirName), true);
+                        Directory.Move(dirPath, pathUtils.PathForMod(dirName));
                         logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
 
                     }
@@ -187,7 +187,7 @@ namespace Starcraft_Mod_Manager
                     }
                 } else
                 {
-                        Directory.Move(dirPath, pathUtils.PathForMods + dirName);
+                        Directory.Move(dirPath, pathUtils.PathForMod(dirName));
                         logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
                 }
             }

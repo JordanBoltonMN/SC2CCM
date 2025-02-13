@@ -76,6 +76,11 @@ namespace ModManager.StarCraft.Base
             return Path.Combine(PathForStarcraft2, commonPath, "metadata.txt");
         }
 
+        public string PathForMod(string partialPath)
+        {
+            return Path.Combine(PathForStarcraft2, CommonPath.Mods, partialPath);
+        }
+
         public string PathForStarcraft2 { get; }
         
         public string PathForCampaign { get; }
@@ -85,7 +90,5 @@ namespace ModManager.StarCraft.Base
         public string PathForCampaignVoidPrologue { get; }
         public string PathForCampaignNco { get; }
         public string PathForCustomCampaigns { get; }
-        
-        public string PathForMods { get; }
     }
 }
