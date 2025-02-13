@@ -34,7 +34,7 @@ namespace Starcraft_Mod_Manager
         private void SC2MM_Load(object sender, EventArgs e)
         {
             copyUpdater();
-            pathUtils = new PathUtils(Path.GetDirectoryName(PathForStarcraft2Exe()));
+            pathUtils = new PathUtils(Path.GetDirectoryName(GetOrDerivePathForStarcraft2Exe()));
             pathUtils.VerifyDirectories();
             zipService.unzipZips(pathUtils.PathForStarcraft2);
             handleDependencies();
@@ -76,9 +76,9 @@ namespace Starcraft_Mod_Manager
         /// <summary>
         /// Pulls the StarCraft II directory from whatever program .SC2Save files are opened with (it's often SC2!)
         /// </summary>
-        public string PathForStarcraft2Exe()
+        public string GetOrDerivePathForStarcraft2Exe()
         {
-            string sc2filePath;
+            string pathForStarcraft2Exe;
 
             if (!File.Exists(PathUtils.PathForCcmConfig))
             {
@@ -93,8 +93,8 @@ namespace Starcraft_Mod_Manager
                 }
                 try
                 {
-                    sc2filePath = PathUtils.PathForStarcraft2Exe();
-                    File.WriteAllText(PathUtils.PathForCcmConfig, sc2filePath);
+                    pathForStarcraft2Exe = PathUtils.PathForStarcraft2Exe();
+                    File.WriteAllText(PathUtils.PathForCcmConfig, pathForStarcraft2Exe);
                 } catch (Exception)
                 {
                     //If we have any issues and need to exit, make the file and force a default path.  We can handle that just ahead.
@@ -107,22 +107,22 @@ namespace Starcraft_Mod_Manager
                 File.WriteAllText(PathUtils.PathForCcmConfig, @"C:\Program Files (x86)\StarCraft II\StarCraft II.exe");
             }
 
-            sc2filePath = File.ReadLines(PathUtils.PathForCcmConfig).FirstOrDefault();
-            if (!File.Exists(sc2filePath))
+            pathForStarcraft2Exe = File.ReadLines(PathUtils.PathForCcmConfig).FirstOrDefault();
+            if (!File.Exists(pathForStarcraft2Exe))
             {
                 MessageBox.Show("It looks like StarCraft II isn't in the default spot!\nPlease use the file browser and select Starcraft II.exe", "StarCraft II Custom Campaign Manager");
                 if (findSC2Dialogue.ShowDialog() == DialogResult.OK)
                 {
                     //I don't do a check for the filename because I don't know if it appears different in other languages.
-                    sc2filePath = findSC2Dialogue.FileName;
-                    File.WriteAllText(PathUtils.PathForCcmConfig, sc2filePath);
+                    pathForStarcraft2Exe = findSC2Dialogue.FileName;
+                    File.WriteAllText(PathUtils.PathForCcmConfig, pathForStarcraft2Exe);
                 } else
                 {
                     Application.Exit();
                 }
             }
 
-            return sc2filePath;
+            return pathForStarcraft2Exe;
         }
 
         /* Moves all the .SC2Mod files and folders into the Mods folder. 
