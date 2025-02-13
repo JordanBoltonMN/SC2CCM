@@ -1,8 +1,7 @@
-﻿using Microsoft.Win32;
-using ModManager.StarCraft.Base.Enums;
-using System;
+﻿using System;
 using System.IO;
-using System.Linq;
+using Microsoft.Win32;
+using ModManager.StarCraft.Base.Enums;
 
 namespace ModManager.StarCraft.Base
 {
@@ -28,6 +27,7 @@ namespace ModManager.StarCraft.Base
             this.PathForMods = Path.Combine(pathForStarcraft2, CommonPath.Mods);
         }
 
+        // Looks up the SC2Switcher.exe location in the registry (if it exists), then navigates up two directories.
         public static string PathForStarcraft2Exe()
         {
             using (RegistryKey registeryKey = Registry.LocalMachine.OpenSubKey(@"Software\Classes\Blizzard.SC2Save\shell\open\command"))
