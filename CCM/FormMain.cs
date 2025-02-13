@@ -415,7 +415,7 @@ namespace Starcraft_Mod_Manager
                 lotvVersionBox.Text = "N/A";
             }
 
-            string ncoMetadataPath = pathUtils.PathForMetadata(CommonPath.Campaign_LotV);
+            string ncoMetadataPath = pathUtils.PathForMetadata(CommonPath.Campaign_Nco);
             if (File.Exists(ncoMetadataPath))
             {
                 Mod activeMod = new Mod();
