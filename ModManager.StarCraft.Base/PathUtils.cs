@@ -23,8 +23,6 @@ namespace ModManager.StarCraft.Base
             this.PathForCampaignLotV = Path.Combine(pathForStarcraft2, CommonPath.Campaign_LotV);
             this.PathForCampaignVoidPrologue = Path.Combine(pathForStarcraft2, CommonPath.Campaign_Prologue);
             this.PathForCampaignNco = Path.Combine(pathForStarcraft2, CommonPath.Campaign_Nco);
-            this.PathForCustomCampaigns = Path.Combine(pathForStarcraft2, CommonPath.CustomCampaigns);
-            this.PathForMods = Path.Combine(pathForStarcraft2, CommonPath.Mods);
         }
 
         // Looks up the SC2Switcher.exe location in the registry (if it exists), then navigates up two directories.
@@ -55,8 +53,8 @@ namespace ModManager.StarCraft.Base
                 PathForCampaignLotV,
                 PathForCampaignVoidPrologue,
                 PathForCampaignNco,
-                PathForCustomCampaigns,
-                PathForMods,
+                PathForCustomCampaign(null),
+                PathForMod(null),
             };
 
             foreach (string directory in directoriesToVerify)
@@ -71,6 +69,15 @@ namespace ModManager.StarCraft.Base
             }
         }
 
+
+
+        public string PathForCustomCampaign(string partialPath)
+        {
+            return partialPath is null
+                ? Path.Combine(PathForStarcraft2, CommonPath.CustomCampaigns)
+                : Path.Combine(PathForStarcraft2, CommonPath.CustomCampaigns, partialPath);
+        }
+
         public string PathForMetadata(string commonPath)
         {
             return Path.Combine(PathForStarcraft2, commonPath, "metadata.txt");
@@ -78,7 +85,9 @@ namespace ModManager.StarCraft.Base
 
         public string PathForMod(string partialPath)
         {
-            return Path.Combine(PathForStarcraft2, CommonPath.Mods, partialPath);
+            return partialPath is null
+                ? Path.Combine(PathForStarcraft2, CommonPath.Mods)
+                : Path.Combine(PathForStarcraft2, CommonPath.Mods, partialPath);
         }
 
         public string PathForStarcraft2 { get; }
@@ -89,6 +98,5 @@ namespace ModManager.StarCraft.Base
         public string PathForCampaignLotV { get; }
         public string PathForCampaignVoidPrologue { get; }
         public string PathForCampaignNco { get; }
-        public string PathForCustomCampaigns { get; }
     }
 }

@@ -131,7 +131,7 @@ namespace Starcraft_Mod_Manager
          */
         public void handleDependencies()
         {
-            string[] files = Directory.GetFiles(pathUtils.PathForCustomCampaigns, "*.SC2Mod", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(pathUtils.PathForCustomCampaign(null), "*.SC2Mod", SearchOption.AllDirectories);
             foreach (string filePath in files)
             {
                 string fileName = Path.GetFileName(filePath);
@@ -164,7 +164,7 @@ namespace Starcraft_Mod_Manager
                 }
             }
 
-            foreach (string dirPath in Directory.GetDirectories(pathUtils.PathForCustomCampaigns, "*.SC2Mod", SearchOption.AllDirectories))
+            foreach (string dirPath in Directory.GetDirectories(pathUtils.PathForCustomCampaign(null), "*.SC2Mod", SearchOption.AllDirectories))
             {
                 string dirName = Path.GetFileName(dirPath);
                 // File with name name as folder check
@@ -205,7 +205,7 @@ namespace Starcraft_Mod_Manager
             }
 
             // Search in each directory
-            foreach (string dir in Directory.GetDirectories(pathUtils.PathForCustomCampaigns, "*", SearchOption.TopDirectoryOnly))
+            foreach (string dir in Directory.GetDirectories(pathUtils.PathForCustomCampaign(null), "*", SearchOption.TopDirectoryOnly))
             {
                 // for a metadata.txt file
                 string[] files = Directory.GetFiles(dir, "metadata.txt", SearchOption.AllDirectories);
@@ -837,7 +837,7 @@ namespace Starcraft_Mod_Manager
                     {
                         importMod = Path.GetFileNameWithoutExtension(filePath);
                     }
-                    File.Copy(filePath, pathUtils.PathForCustomCampaigns + Path.GetFileName(filePath), true);
+                    File.Copy(filePath, pathUtils.PathForCustomCampaign(Path.GetFileName(filePath)), true);
                 }
                 else
                 {
@@ -853,7 +853,7 @@ namespace Starcraft_Mod_Manager
                         {
                             importMod = Path.GetFileNameWithoutExtension(filePath);
                         }
-                        string targetDir = pathUtils.PathForCustomCampaigns + Path.GetFileName(filePath);
+                        string targetDir = Path.Combine(pathUtils.PathForCustomCampaign(Path.GetFileName(filePath)));
                         if (!Directory.Exists(targetDir))
                         {
                             Directory.CreateDirectory(targetDir);
