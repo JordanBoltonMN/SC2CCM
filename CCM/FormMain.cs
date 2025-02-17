@@ -17,6 +17,14 @@ namespace Starcraft_Mod_Manager
 {
     public partial class FormMain : Form
     {
+        static private readonly Campaign[] CampaignsWithModUserControl = new Campaign[]
+        {
+            Campaign.WoL,
+            Campaign.HotS,
+            Campaign.LotV,
+            Campaign.NCO,
+        };
+
         // modLists contains the mods for each campaign (WoL, HotS, LotV, NCO, none)
         //That should be Dictionary<Capaign, List<Mod>> to avoid uninteded duplicates that can slip through testing. Leaving for now. -MajorKaza
         List<Mod>[] modLists = new List<Mod>[5];
@@ -31,6 +39,14 @@ namespace Starcraft_Mod_Manager
             zipService = new ZipService(logBoxWriteLine); //TODO: Propper logger
         }
 
+        private IEnumerable<ModUserControl> UserControls => new ModUserControl[]
+        {
+            this.wolModUserControl,
+            this.hotsModUserControl,
+            this.lotvModUserControl,
+            this.ncoModUserControl,
+        };
+
         private void SC2MM_Load(object sender, EventArgs e)
         {
             copyUpdater();
@@ -42,8 +58,8 @@ namespace Starcraft_Mod_Manager
         private void SC2MM_Shown(object sender, EventArgs e)
         {
             populateModLists();
-            populateDropdowns();
-            setInfoBoxes();
+            PopulateDropdowns();
+            SetInfoBoxes();
             logBoxWriteLine("Loaded SC2CCM.");
         }
 
@@ -278,130 +294,45 @@ namespace Starcraft_Mod_Manager
          * Also does a slightly hideous check of comparing the new item to the mod most recently imported.
          * If so, it calls the new mod prompt function.
          */
-        public void populateDropdowns()
+        public void PopulateDropdowns()
         {
-            wolSelectBox.Items.Clear();
-            hotsSelectBox.Items.Clear();
-            lotvSelectBox.Items.Clear();
-            ncoSelectBox.Items.Clear();
-
-            foreach (Mod mod in modLists[1])
+            foreach ((ModUserControl modUserControl, IEnumerable<Mod> mods) in this.GetAllControlAndMods())
             {
-                wolSelectBox.Items.Add(mod.Title);
-                if (mod.Path.Contains(@"\" + importMod + @"\") && importMod.Length > 0)
-                {
-                    promptNewMod(mod.Title, mod.Campaign);
-                }
-            }
-            foreach (Mod mod in modLists[2])
-            {
-                hotsSelectBox.Items.Add(mod.Title);
-                if (mod.Path.Contains(@"\" + importMod + @"\") && importMod.Length > 0)
-                {
-                    promptNewMod(mod.Title, mod.Campaign);
-                }
-            }
-            foreach (Mod mod in modLists[3])
-            {
-                lotvSelectBox.Items.Add(mod.Title);
-                if (mod.Path.Contains(@"\" + importMod + @"\") && importMod.Length > 0)
-                {
-                    promptNewMod(mod.Title, mod.Campaign);
-                }
-            }
-            foreach (Mod mod in modLists[4])
-            {
-                ncoSelectBox.Items.Add(mod.Title);
-                if (mod.Path.Contains(@"\" + importMod + @"\") && importMod.Length > 0)
-                {
-                    promptNewMod(mod.Title, mod.Campaign);
-                }
+                modUserControl.PopulateDropdowns(mods, triggeredByDelete: false);
             }
         }
 
         /* Populates the dropdowns of only a specific campaign.
          * This is called specifically after deleting a campaign.
          */
-        public void populateDropdowns(int index)
+        public void PopulateDropdowns(Campaign campaign)
         {
-            if (index == 1)
-            {
-                wolSelectBox.Items.Clear();
-                wolSetButton.Enabled = false;
-                wolDeleteButton.Enabled = false;
-                foreach (Mod mod in modLists[index])
-                {
-                    wolSelectBox.Items.Add(mod.Title);
-                }
-            }
+            // TODO figure out whta that weird condtional was for.
+            (ModUserControl modUserControl, IEnumerable<Mod> mods) = this.GetControlAndModsFor(campaign);
 
-            if (index == 2)
-            {
-                hotsSelectBox.Items.Clear();
-                hotsSetButton.Enabled = false;
-                hotsDeleteButton.Enabled = false;
-                foreach (Mod mod in modLists[index])
-                {
-                    hotsSelectBox.Items.Add(mod.Title);
-                }
-            }
-
-            if (index == 3)
-            {
-                lotvSelectBox.Items.Clear();
-                lotvSetButton.Enabled = false;
-                lotvDeleteButton.Enabled = false;
-                foreach (Mod mod in modLists[index])
-                {
-                    lotvSelectBox.Items.Add(mod.Title);
-                }
-            }
-
-            if (index == 4)
-            {
-                ncoSelectBox.Items.Clear();
-                ncoSetButton.Enabled = false;
-                ncoDeleteButton.Enabled = false;
-                foreach (Mod mod in modLists[index])
-                {
-                    ncoSelectBox.Items.Add(mod.Title);
-                }
-            }
+            modUserControl.PopulateDropdowns(mods, triggeredByDelete: true);
         }
 
         /* Asks if the user wants to set the single newly imported mod to active.  */
-        public void promptNewMod(string modName, Campaign campaign)
+        public void PromptNewMod(Mod mod)
         {
-            DialogResult dialogResult = MessageBox.Show("Import of " + modName + " successful, would you like to make it the active campaign?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                $"Import of {mod.Title} successful, would you like to make it the active campaign?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
+
             if (dialogResult == DialogResult.Yes)
             {
-                if (campaign == Campaign.WoL)
-                {
-                    wolSelectBox.SelectedIndex = wolSelectBox.FindStringExact(modName);
-                    wolSetButton_Click(null, null);
-                }
-                else if (campaign == Campaign.HotS)
-                {
-                    hotsSelectBox.SelectedIndex = hotsSelectBox.FindStringExact(modName);
-                    hotsSetButton_Click(null, null);
-                }
-                else if (campaign == Campaign.LotV)
-                {
-                    lotvSelectBox.SelectedIndex = lotvSelectBox.FindStringExact(modName);
-                    lotvSetButton_Click(null, null);
-                }
-                else if (campaign == Campaign.NCO)
-                {
-                    ncoSelectBox.SelectedIndex = ncoSelectBox.FindStringExact(modName);
-                    ncoSetButton_Click(null, null);
-                }
+                ModUserControl modUserControl = GetModUserControlFor(mod.Campaign);
+                modUserControl.SelectMod(mod);
             }
         }
 
         /* Sets the display boxes (Title, Author, Version) for the active mod.
          * Sets to a default if no metadata.txt is found. 
          */
-        public void setInfoBoxes()
+        public void SetInfoBoxes()
         {
             if (File.Exists(sc2BasePath + @"\Maps\Campaign\metadata.txt"))
             {
@@ -473,6 +404,58 @@ namespace Starcraft_Mod_Manager
                 ncoTitleBox.Text = "Default Campaign";
                 ncoAuthorBox.Text = "Blizzard";
                 ncoVersionBox.Text = "N/A";
+            }
+        }
+
+        private IEnumerable<(ModUserControl modUserControl, IEnumerable<Mod> mods)> GetAllControlAndMods()
+        {
+            return CampaignsWithModUserControl.Select(this.GetControlAndModsFor);
+        }
+
+        private (ModUserControl modUserControl, IEnumerable<Mod> mods) GetControlAndModsFor(Campaign campaign)
+        {
+            return (this.GetModUserControlFor(campaign), GetModsFor(campaign));
+        }
+
+        private ModUserControl GetModUserControlFor(Campaign campaign)
+        {
+            switch (campaign)
+            {
+                case Campaign.WoL:
+                    return this.wolModUserControl;
+
+                case Campaign.HotS:
+                    return this.hotsModUserControl;
+
+                case Campaign.LotV:
+                    return this.lotvModUserControl;
+
+                case Campaign.NCO:
+                    return this.ncoModUserControl;
+
+                default:
+                    throw new ArgumentException($"No campaign lists exists for {campaign}");
+            }
+        }
+
+        private IEnumerable<Mod> GetModsFor(Campaign campaign)
+        {
+            switch (campaign)
+            {
+                case Campaign.WoL:
+                    return modLists[1];
+
+                case Campaign.HotS:
+                    return modLists[2];
+
+                case Campaign.LotV:
+                    return modLists[3];
+
+                case Campaign.NCO:
+                    return modLists[4];
+
+                default:
+                    throw new ArgumentException($"No campaign lists exists for {campaign}");
             }
         }
 
@@ -593,7 +576,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign"))
             {
                 copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign");
-                setInfoBoxes();
+                SetInfoBoxes();
                 logBoxWriteLine("Set Wings Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(wolWarningImg);
             } else
@@ -618,8 +601,8 @@ namespace Starcraft_Mod_Manager
                 {
                     Directory.Delete(modPath);
                     populateModLists();
-                    populateDropdowns((int)Campaign.WoL);
-                    setInfoBoxes();
+                    PopulateDropdowns((int)Campaign.WoL);
+                    SetInfoBoxes();
                     logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
                 }
                 else
@@ -635,7 +618,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign"))
             {
                 logBoxWriteLine("Clear successful!");
-                setInfoBoxes();
+                SetInfoBoxes();
                 hideWarningImg(wolWarningImg);
             } else
             {
@@ -653,7 +636,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign\swarm"))
             {
                 copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign\swarm");
-                setInfoBoxes();
+                SetInfoBoxes();
                 logBoxWriteLine("Set Swarm Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(hotsWarningImg);
             }
@@ -679,8 +662,8 @@ namespace Starcraft_Mod_Manager
                 {
                     Directory.Delete(modPath);
                     populateModLists();
-                    populateDropdowns((int)Campaign.HotS);
-                    setInfoBoxes();
+                    PopulateDropdowns((int)Campaign.HotS);
+                    SetInfoBoxes();
                     logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
                 }
                 else
@@ -696,7 +679,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign\swarm") && clearDir(sc2BasePath + @"\Maps\Campaign\swarm\evolution"))
             {
                 logBoxWriteLine("Clear complete!");
-                setInfoBoxes();
+                SetInfoBoxes();
                 hideWarningImg(hotsWarningImg);
             }
             else
@@ -714,7 +697,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign\void"))
             {
                 copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign\void");
-                setInfoBoxes();
+                SetInfoBoxes();
                 logBoxWriteLine("Set Void Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(lotvWarningImg);
             }
@@ -740,8 +723,8 @@ namespace Starcraft_Mod_Manager
                 {
                     Directory.Delete(modPath);
                     populateModLists();
-                    populateDropdowns((int)Campaign.LotV);
-                    setInfoBoxes();
+                    PopulateDropdowns((int)Campaign.LotV);
+                    SetInfoBoxes();
                     logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
                 }
                 else
@@ -757,7 +740,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign\void"))
             {
                 logBoxWriteLine("Clear complete!");
-                setInfoBoxes();
+                SetInfoBoxes();
                 hideWarningImg(lotvWarningImg);
             }
             else
@@ -775,7 +758,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign\nova"))
             {
                 copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign\nova");
-                setInfoBoxes();
+                SetInfoBoxes();
                 logBoxWriteLine("Set Nova Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(ncoWarningImg);
             }
@@ -801,8 +784,8 @@ namespace Starcraft_Mod_Manager
                 {
                     Directory.Delete(modPath);
                     populateModLists();
-                    populateDropdowns((int)Campaign.NCO);
-                    setInfoBoxes();
+                    PopulateDropdowns((int)Campaign.NCO);
+                    SetInfoBoxes();
                     logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
                 }
                 else
@@ -818,7 +801,7 @@ namespace Starcraft_Mod_Manager
             if (clearDir(sc2BasePath + @"\Maps\Campaign\nova"))
             {
                 logBoxWriteLine("Clear complete!");
-                setInfoBoxes();
+                SetInfoBoxes();
                 hideWarningImg(ncoWarningImg);
             }
             else

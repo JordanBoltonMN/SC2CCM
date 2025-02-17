@@ -25,7 +25,7 @@ namespace ModManager.StarCraft.Base.Enums
             }
         }
 
-        public static string ToDisplayName(this Campaign campaign)
+        public static string ToTitle(this Campaign campaign)
         {
             switch (campaign)
             {
@@ -46,7 +46,7 @@ namespace ModManager.StarCraft.Base.Enums
             }
         }
 
-        public static string ToShortDisplayName(this Campaign campaign)
+        public static string ToAbbreviation(this Campaign campaign)
         {
             switch (campaign)
             {

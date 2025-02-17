@@ -1,20 +1,43 @@
 ﻿using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
+using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Starcraft_Mod_Manager
 {
     partial class ModUserControl
     {
-        public void SetMod(Mod mod)
+        public void SetCampaign(Campaign campaign)
         {
-            Color backgroundColor = Campaign.WoL.ToBackgroundColor();
+            Color backgroundColor = campaign.ToBackgroundColor();
             this.titleBox.BackColor = backgroundColor;
             this.authorBox.BackColor = backgroundColor;
             this.versionBox.BackColor = backgroundColor;
 
-            this.groupBox.Text = mod.Title;
-            this.selectModTitle.Text = $"Select {Campaign.WoL.ToShortDisplayName()} campaign";
+            this.groupBox.Text = campaign.ToTitle();
+            this.selectModTitle.Text = $"Select {Campaign.WoL.ToAbbreviation()} campaign";
+        }
+
+        public void PopulateDropdowns(IEnumerable<Mod> mods, bool triggeredByDelete)
+        {
+            this.modSelectDropdown.Items.Clear();
+
+            foreach (Mod mod in mods)
+            {
+                this.modSelectDropdown.Items.Add(mod.Title);
+            }
+
+            if (triggeredByDelete)
+            {
+                this.setActiveButton.Enabled = false;
+                this.deleteButton.Enabled = false;
+            }
+        }
+
+        public void SelectMod(Mod mod)
+        {
+            this.modSelectDropdown.Items.Clear();
         }
 
         /// <summary> 
@@ -82,6 +105,7 @@ namespace Starcraft_Mod_Manager
             this.modSelectDropdown.Name = "modSelectDropdown";
             this.modSelectDropdown.Size = new System.Drawing.Size(188, 21);
             this.modSelectDropdown.TabIndex = 3;
+            this.modSelectDropdown.SelectedIndexChanged += new System.EventHandler(this.modSelectDropdown_SelectedIndexChanged);
             // 
             // titleBox
             // 
@@ -126,6 +150,7 @@ namespace Starcraft_Mod_Manager
             this.deleteButton.TabIndex = 7;
             this.deleteButton.Text = "Delete Mod Files";
             this.deleteButton.UseVisualStyleBackColor = true;
+            this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
             // 
             // restoreButton
             // 
