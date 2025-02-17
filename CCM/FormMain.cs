@@ -187,8 +187,8 @@ namespace Starcraft_Mod_Manager
                     }
                 } else
                 {
-                        Directory.Move(dirPath, pathUtils.PathForMod(dirName));
-                        logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
+                    Directory.Move(dirPath, pathUtils.PathForMod(dirName));
+                    logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
                 }
             }
         }
@@ -447,56 +447,7 @@ namespace Starcraft_Mod_Manager
             //if (lineParts[0].ToLower() == "lotvprologue") mod.SetPrologue(lineParts[1]);
         }
 
-        /* Recursively copies all files and folders of a source folder to a target folder.
-         */
-        private static void copyFilesAndFolders(string sourcePath, string targetPath)
-        {
-            //Now Create all of the directories
-            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
-            {
-                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
-                Console.WriteLine("Created Dir at " + dirPath.Replace(sourcePath, targetPath));
-            }
 
-            //Copy all the files & Replaces any files with the same name
-            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
-            {
-                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
-            }
-        }
-
-        /* Clears a directively recursively. */
-        public bool clearDir(string dir)
-        {
-            bool retVal = true;
-            try
-            {
-                foreach (var file in Directory.GetFiles(dir))
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch (IOException e)
-                    {
-                        logBoxWriteLine("ERROR: Could not delete campaign file " + Path.GetFileNameWithoutExtension(file) + " - please exit the campaign and try again.");
-                        retVal = false;
-                    }
-                }
-            } catch (IOException e)
-            {
-                logBoxWriteLine("ERROR: Did not find directory " + dir + " to clear.");
-            }
-            //TODO: Fix the evo missions
-            foreach (string subdir in Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly))
-            {
-                if (!(subdir.Contains(@"Campaign\swarm") || subdir.Contains(@"Campaign\void") || subdir.Contains(@"Campaign\nova")))
-                {
-                    Directory.Delete(subdir, true);
-                }
-            }
-            return retVal;
-        }
 
         private void wolSelectBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -528,9 +479,6 @@ namespace Starcraft_Mod_Manager
             logBox.SelectionStart = logBox.Text.Length;
             logBox.ScrollToCaret();
             logBox.Text += "\n";
-            //logBox.Items.Add(message);
-            //int nItems = (int)(logBox.Height / logBox.ItemHeight);
-            //logBox.TopIndex = logBox.Items.Count - nItems;
         }
 
         private void displayBox_KeyDown(object sender, KeyEventArgs e)
@@ -549,9 +497,9 @@ namespace Starcraft_Mod_Manager
             if (wolSelectBox.SelectedIndex < 0) return;
             Mod selectedMod = modLists[1][wolSelectBox.SelectedIndex];
             string modPath = selectedMod.Path;
-            if (clearDir(pathUtils.PathForCampaign))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaign, logBoxWriteLine))
             {
-                copyFilesAndFolders(modPath, pathUtils.PathForCampaign);
+                PathUtils.CopyFilesAndFolders(modPath, pathUtils.PathForCampaign);
                 setInfoBoxes();
                 logBoxWriteLine("Set Wings Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(wolWarningImg);
@@ -573,7 +521,7 @@ namespace Starcraft_Mod_Manager
                 {
                     modPath = Path.GetDirectoryName(modPath);
                 }
-                if (clearDir(modPath))
+                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
                 {
                     Directory.Delete(modPath);
                     populateModLists();
@@ -591,7 +539,7 @@ namespace Starcraft_Mod_Manager
         private void wolRestoreButton_Click(object sender, EventArgs e)
         {
             logBoxWriteLine("Resetting Wings Campaign to default.");
-            if (clearDir(pathUtils.PathForCampaign))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaign, logBoxWriteLine))
             {
                 logBoxWriteLine("Clear successful!");
                 setInfoBoxes();
@@ -609,9 +557,9 @@ namespace Starcraft_Mod_Manager
             if (hotsSelectBox.SelectedIndex < 0) return;
             Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
             string modPath = selectedMod.Path;
-            if (clearDir(pathUtils.PathForCampaignHotS))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaignHotS, logBoxWriteLine))
             {
-                copyFilesAndFolders(modPath, pathUtils.PathForCampaignHotS);
+                PathUtils.CopyFilesAndFolders(modPath, pathUtils.PathForCampaignHotS);
                 setInfoBoxes();
                 logBoxWriteLine("Set Swarm Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(hotsWarningImg);
@@ -634,7 +582,7 @@ namespace Starcraft_Mod_Manager
                 {
                     modPath = Path.GetDirectoryName(modPath);
                 }
-                if (clearDir(modPath))
+                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
                 {
                     Directory.Delete(modPath);
                     populateModLists();
@@ -652,7 +600,8 @@ namespace Starcraft_Mod_Manager
         private void hotsRestoreButton_Click(object sender, EventArgs e)
         {
             logBoxWriteLine("Resetting Swarm Campaign to default.");
-            if (clearDir(pathUtils.PathForCampaignHotS) && clearDir(pathUtils.PathForCampaignHotSEvolution))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaignHotS, logBoxWriteLine)
+                && PathUtils.TryClearDirectory(pathUtils.PathForCampaignHotSEvolution, logBoxWriteLine))
             {
                 logBoxWriteLine("Clear complete!");
                 setInfoBoxes();
@@ -670,9 +619,9 @@ namespace Starcraft_Mod_Manager
             if (lotvSelectBox.SelectedIndex < 0) return;
             Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
             string modPath = selectedMod.Path;
-            if (clearDir(pathUtils.PathForCampaignLotV))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaignLotV, logBoxWriteLine))
             {
-                copyFilesAndFolders(modPath, pathUtils.PathForCampaignLotV);
+                PathUtils.CopyFilesAndFolders(modPath, pathUtils.PathForCampaignLotV);
                 setInfoBoxes();
                 logBoxWriteLine("Set Void Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(lotvWarningImg);
@@ -695,7 +644,7 @@ namespace Starcraft_Mod_Manager
                 {
                     modPath = Path.GetDirectoryName(modPath);
                 }
-                if (clearDir(modPath))
+                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
                 {
                     Directory.Delete(modPath);
                     populateModLists();
@@ -713,7 +662,7 @@ namespace Starcraft_Mod_Manager
         private void lotvRestoreButton_Click(object sender, EventArgs e)
         {
             logBoxWriteLine("Resetting Void Campaign to default.");
-            if (clearDir(pathUtils.PathForCampaignLotV))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaignLotV, logBoxWriteLine))
             {
                 logBoxWriteLine("Clear complete!");
                 setInfoBoxes();
@@ -731,9 +680,9 @@ namespace Starcraft_Mod_Manager
             if (ncoSelectBox.SelectedIndex < 0) return;
             Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
             string modPath = selectedMod.Path;
-            if (clearDir(pathUtils.PathForCampaignNco))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaignNco, logBoxWriteLine))
             {
-                copyFilesAndFolders(modPath, pathUtils.PathForCampaignNco);
+                PathUtils.CopyFilesAndFolders(modPath, pathUtils.PathForCampaignNco);
                 setInfoBoxes();
                 logBoxWriteLine("Set Nova Campaign to " + selectedMod.Title + "!");
                 hideWarningImg(ncoWarningImg);
@@ -756,7 +705,7 @@ namespace Starcraft_Mod_Manager
                 {
                     modPath = Path.GetDirectoryName(modPath);
                 }
-                if (clearDir(modPath))
+                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
                 {
                     Directory.Delete(modPath);
                     populateModLists();
@@ -774,7 +723,7 @@ namespace Starcraft_Mod_Manager
         private void ncoRestoreButton_Click(object sender, EventArgs e)
         {
             logBoxWriteLine("Resetting Nova Campaign to default.");
-            if (clearDir(pathUtils.PathForCampaignNco))
+            if (PathUtils.TryClearDirectory(pathUtils.PathForCampaignNco, logBoxWriteLine))
             {
                 logBoxWriteLine("Clear complete!");
                 setInfoBoxes();
@@ -858,7 +807,7 @@ namespace Starcraft_Mod_Manager
                         {
                             Directory.CreateDirectory(targetDir);
                         }
-                        copyFilesAndFolders(filePath, targetDir);
+                        PathUtils.CopyFilesAndFolders(filePath, targetDir);
                         Directory.Delete(filePath, true);
                     }
                 }

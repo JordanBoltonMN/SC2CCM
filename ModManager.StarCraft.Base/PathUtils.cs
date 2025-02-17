@@ -25,6 +25,61 @@ namespace ModManager.StarCraft.Base
             this.PathForCampaignNco = Path.Combine(pathForStarcraft2, CommonPath.Campaign_Nco);
         }
 
+        /* Recursively copies all files and folders of a source folder to a target folder.
+ */
+        public static void CopyFilesAndFolders(string sourcePath, string targetPath)
+        {
+            //Now Create all of the directories
+            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+                Console.WriteLine($"Created Dir at '{dirPath.Replace(sourcePath, targetPath)}'");
+            }
+
+            //Copy all the files & Replaces any files with the same name
+            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            {
+                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+            }
+        }
+
+        public static bool TryClearDirectory(string directory, Action<string> reportError)
+        {
+            bool isSuccessful = true;
+
+            try
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (IOException)
+                    {
+                        reportError($"ERROR: Could not delete campaign file {Path.GetFileNameWithoutExtension(file)} - please exit the campaign and try again.");
+                        isSuccessful = false;
+                    }
+                }
+            }
+            catch (IOException)
+            {
+                reportError($"ERROR: Did not find directory {directory} to clear.");
+            }
+            
+            //TODO: Fix the evo missions
+            foreach (string subdir in Directory.GetDirectories(directory, "*", SearchOption.TopDirectoryOnly))
+            {
+                if (!(subdir.Contains(@"Campaign\swarm") || subdir.Contains(@"Campaign\void") || subdir.Contains(@"Campaign\nova")))
+                {
+                    Directory.Delete(subdir, true);
+                }
+            }
+
+            return isSuccessful;
+        }
+        
+
         // Looks up the SC2Switcher.exe location in the registry (if it exists), then navigates up two directories.
         public static string PathForStarcraft2Exe()
         {
@@ -69,8 +124,6 @@ namespace ModManager.StarCraft.Base
             }
         }
 
-
-
         public string PathForCustomCampaign(string partialPath)
         {
             return partialPath is null
@@ -91,7 +144,6 @@ namespace ModManager.StarCraft.Base
         }
 
         public string PathForStarcraft2 { get; }
-        
         public string PathForCampaign { get; }
         public string PathForCampaignHotS { get; }
         public string PathForCampaignHotSEvolution { get; }
