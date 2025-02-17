@@ -16,10 +16,16 @@ namespace Starcraft_Mod_Manager
             this.versionBox.BackColor = backgroundColor;
 
             this.groupBox.Text = campaign.ToTitle();
-            this.selectModTitle.Text = $"Select {Campaign.WoL.ToAbbreviation()} campaign";
+            this.selectModTitle.Text = $"Select {campaign.ToAbbreviation()} campaign";
         }
 
-        public void PopulateDropdowns(IEnumerable<Mod> mods, bool triggeredByDelete)
+        public void SetAvaialbleMods(IEnumerable<Mod> mods)
+        {
+            this.AvailableMods = mods;
+            this.PopulateDropdowns(mods);
+        }
+
+        public void PopulateDropdowns(IEnumerable<Mod> mods)
         {
             this.modSelectDropdown.Items.Clear();
 
@@ -27,18 +33,25 @@ namespace Starcraft_Mod_Manager
             {
                 this.modSelectDropdown.Items.Add(mod.Title);
             }
-
-            if (triggeredByDelete)
-            {
-                this.setActiveButton.Enabled = false;
-                this.deleteButton.Enabled = false;
-            }
         }
 
         public void SelectMod(Mod mod)
         {
-            this.modSelectDropdown.Items.Clear();
+            if (mod is null)
+            {
+                this.titleBox.Text = "Default Campaign";
+                this.authorBox.Text = "Blizzard";
+                this.versionBox.Text = "N/A";
+            }
+            else
+            {
+                this.titleBox.Text = mod.Title;
+                this.authorBox.Text = mod.Author;
+                this.versionBox.Text = mod.Version;
+            }
         }
+
+        private IEnumerable<Mod> AvailableMods { get; set; }
 
         /// <summary> 
         /// Required designer variable.

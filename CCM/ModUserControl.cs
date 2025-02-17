@@ -38,11 +38,10 @@ namespace Starcraft_Mod_Manager
 
         private void modSelectDropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (modSelectDropdown.SelectedIndex != -1)
-            {
-                this.setActiveButton.Enabled = true;
-                this.deleteButton.Enabled = true;
-            }
+            this.setActiveButton.Enabled = true;
+            this.deleteButton.Enabled = true;
+
+            this.SelectMod(this.modSelectDropdown.SelectedItem as Mod);
         }
 
         private void deleteButton_Click(object sender, EventArgs e)
