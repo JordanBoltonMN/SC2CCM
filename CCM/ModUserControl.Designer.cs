@@ -1,7 +1,22 @@
-﻿namespace Starcraft_Mod_Manager
+﻿using ModManager.StarCraft.Base;
+using ModManager.StarCraft.Base.Enums;
+using System.Drawing;
+
+namespace Starcraft_Mod_Manager
 {
     partial class ModUserControl
     {
+        public void SetMod(Mod mod)
+        {
+            Color backgroundColor = Campaign.WoL.ToBackgroundColor();
+            this.titleBox.BackColor = backgroundColor;
+            this.authorBox.BackColor = backgroundColor;
+            this.versionBox.BackColor = backgroundColor;
+
+            this.groupBox.Text = mod.Title;
+            this.selectModTitle.Text = $"Select {Campaign.WoL.ToShortDisplayName()} campaign";
+        }
+
         /// <summary> 
         /// Required designer variable.
         /// </summary>
@@ -41,9 +56,9 @@
             this.versionBox = new System.Windows.Forms.TextBox();
             this.versionTitle = new System.Windows.Forms.Label();
             this.warningImage = new System.Windows.Forms.PictureBox();
-            this.modBox = new System.Windows.Forms.GroupBox();
+            this.groupBox = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.warningImage)).BeginInit();
-            this.modBox.SuspendLayout();
+            this.groupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // activeModTitle
@@ -70,7 +85,7 @@
             // 
             // titleBox
             // 
-            this.titleBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(255)))));
+            this.titleBox.BackColor = System.Drawing.Color.Fuchsia;
             this.titleBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.titleBox.Location = new System.Drawing.Point(1, 42);
             this.titleBox.Name = "titleBox";
@@ -83,11 +98,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.selectModTitle.AutoSize = true;
             this.selectModTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.selectModTitle.Location = new System.Drawing.Point(53, 149);
+            this.selectModTitle.Location = new System.Drawing.Point(39, 149);
             this.selectModTitle.Name = "selectModTitle";
             this.selectModTitle.Size = new System.Drawing.Size(114, 13);
             this.selectModTitle.TabIndex = 5;
             this.selectModTitle.Text = "Select (unknown) Mod";
+            this.selectModTitle.Click += new System.EventHandler(this.selectModTitle_Click);
             // 
             // setActiveButton
             // 
@@ -123,7 +139,7 @@
             // 
             // authorBox
             // 
-            this.authorBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(255)))));
+            this.authorBox.BackColor = System.Drawing.Color.Fuchsia;
             this.authorBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.authorBox.Location = new System.Drawing.Point(1, 81);
             this.authorBox.Name = "authorBox";
@@ -144,7 +160,7 @@
             // 
             // versionBox
             // 
-            this.versionBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(255)))));
+            this.versionBox.BackColor = System.Drawing.Color.Fuchsia;
             this.versionBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.versionBox.Location = new System.Drawing.Point(51, 120);
             this.versionBox.Name = "versionBox";
@@ -173,41 +189,41 @@
             this.warningImage.TabStop = false;
             this.warningImage.Visible = false;
             // 
-            // modBox
+            // groupBox
             // 
-            this.modBox.BackColor = System.Drawing.SystemColors.Control;
-            this.modBox.Controls.Add(this.warningImage);
-            this.modBox.Controls.Add(this.versionTitle);
-            this.modBox.Controls.Add(this.versionBox);
-            this.modBox.Controls.Add(this.authorTitle);
-            this.modBox.Controls.Add(this.authorBox);
-            this.modBox.Controls.Add(this.restoreButton);
-            this.modBox.Controls.Add(this.deleteButton);
-            this.modBox.Controls.Add(this.setActiveButton);
-            this.modBox.Controls.Add(this.selectModTitle);
-            this.modBox.Controls.Add(this.titleBox);
-            this.modBox.Controls.Add(this.modSelectDropdown);
-            this.modBox.Controls.Add(this.activeModTitle);
-            this.modBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.25F);
-            this.modBox.Location = new System.Drawing.Point(0, 0);
-            this.modBox.Name = "modBox";
-            this.modBox.Size = new System.Drawing.Size(190, 279);
-            this.modBox.TabIndex = 1;
-            this.modBox.TabStop = false;
-            this.modBox.Text = "(unknown)";
-            this.modBox.Enter += new System.EventHandler(this.wolBox_Enter);
+            this.groupBox.BackColor = System.Drawing.SystemColors.Control;
+            this.groupBox.Controls.Add(this.warningImage);
+            this.groupBox.Controls.Add(this.versionTitle);
+            this.groupBox.Controls.Add(this.versionBox);
+            this.groupBox.Controls.Add(this.authorTitle);
+            this.groupBox.Controls.Add(this.authorBox);
+            this.groupBox.Controls.Add(this.restoreButton);
+            this.groupBox.Controls.Add(this.deleteButton);
+            this.groupBox.Controls.Add(this.setActiveButton);
+            this.groupBox.Controls.Add(this.selectModTitle);
+            this.groupBox.Controls.Add(this.titleBox);
+            this.groupBox.Controls.Add(this.modSelectDropdown);
+            this.groupBox.Controls.Add(this.activeModTitle);
+            this.groupBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.25F);
+            this.groupBox.Location = new System.Drawing.Point(0, 0);
+            this.groupBox.Name = "groupBox";
+            this.groupBox.Size = new System.Drawing.Size(190, 279);
+            this.groupBox.TabIndex = 1;
+            this.groupBox.TabStop = false;
+            this.groupBox.Text = "(unknown)";
+            this.groupBox.Enter += new System.EventHandler(this.wolBox_Enter);
             // 
             // ModUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.modBox);
+            this.Controls.Add(this.groupBox);
             this.Name = "ModUserControl";
             this.Size = new System.Drawing.Size(190, 280);
             this.Load += new System.EventHandler(this.ModUserControl_Load);
             ((System.ComponentModel.ISupportInitialize)(this.warningImage)).EndInit();
-            this.modBox.ResumeLayout(false);
-            this.modBox.PerformLayout();
+            this.groupBox.ResumeLayout(false);
+            this.groupBox.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -226,6 +242,6 @@
         private System.Windows.Forms.TextBox versionBox;
         private System.Windows.Forms.Label versionTitle;
         private System.Windows.Forms.PictureBox warningImage;
-        private System.Windows.Forms.GroupBox modBox;
+        private System.Windows.Forms.GroupBox groupBox;
     }
 }

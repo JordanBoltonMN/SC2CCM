@@ -619,6 +619,7 @@
             this.wolBox.TabIndex = 0;
             this.wolBox.TabStop = false;
             this.wolBox.Text = "Wings of Liberty";
+            this.wolBox.Enter += new System.EventHandler(this.wolBox_Enter);
             // 
             // label3
             // 

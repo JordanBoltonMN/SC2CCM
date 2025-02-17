@@ -991,5 +991,10 @@ namespace Starcraft_Mod_Manager
         {
             //e.SuppressKeyPress = true;
         }
+
+        private void wolBox_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }

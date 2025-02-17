@@ -31,5 +31,10 @@ namespace Starcraft_Mod_Manager
         {
 
         }
+
+        private void selectModTitle_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
