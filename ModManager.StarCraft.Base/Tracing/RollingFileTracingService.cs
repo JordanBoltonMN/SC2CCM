@@ -7,11 +7,7 @@ namespace ModManager.StarCraft.Base.Tracing
 {
     public class RollingFileLogger : IDisposable, ITracingService
     {
-        public RollingFileLogger(
-            string outputDirectory,
-            string outputFileNamePrefix,
-            long maxFileSizeInBytes
-        )
+        public RollingFileLogger(string outputDirectory, string outputFileNamePrefix, long maxFileSizeInBytes)
         {
             this.OutputDirectory = outputDirectory;
             this.OutputFileNamePrefix = outputFileNamePrefix;

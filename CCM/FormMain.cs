@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
@@ -35,13 +29,14 @@ namespace Starcraft_Mod_Manager
 
         public FormMain(ITracingService tracingService)
         {
+            InitializeComponent();
+
             this.TracingService = new CompositeTracingService(
                 new ITracingService[] { tracingService, new RichTextBoxTracingService(this.logBox) }
             );
 
             this.PathUtils = new PathUtils(Path.GetDirectoryName(GetOrDerivePathForStarcraft2Exe()));
 
-            InitializeComponent();
             zipService = new ZipService(this.TracingService);
         }
 

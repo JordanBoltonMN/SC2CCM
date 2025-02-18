@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base.Tracing;
@@ -18,7 +19,7 @@ namespace Starcraft_Mod_Manager
             Application.Run(
                 new FormMain(
                     new RollingFileLogger(
-                        Assembly.GetExecutingAssembly().Location,
+                        Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "SMM_Log",
                         1024 * 1024 /* 1 megabyte */
                     )
