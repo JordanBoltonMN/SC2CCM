@@ -60,10 +60,11 @@ namespace Starcraft_Mod_Manager
 
         private void SC2MM_Shown(object sender, EventArgs e)
         {
-            this.wolModUserControl.SetCampaign(Campaign.WoL);
-            this.hotsModUserControl.SetCampaign(Campaign.HotS);
-            this.lotvModUserControl.SetCampaign(Campaign.LotV);
-            this.ncoModUserControl.SetCampaign(Campaign.NCO);
+            foreach ((ModUserControl modUserControl, Campaign campaign) in this.GetAllControlAndCampaigns())
+            {
+                modUserControl.SetCampaign(campaign);
+                modUserControl.TracingService = this.TracingService;
+            }
 
             this.modsByCampaign = GetKnownMods();
 
@@ -180,14 +181,12 @@ namespace Starcraft_Mod_Manager
                     {
                         File.Delete(this.PathUtils.PathForMod(fileName));
                         File.Move(filePath, this.PathUtils.PathForMod(fileName));
-                        logBoxWriteLine("Moved " + fileName + " to Dependencies folder.");
+                        this.TracingService.TraceMessage($"Moved file '{fileName}' to Dependencies folder.");
                     }
                     catch (IOException e)
                     {
-                        logBoxWriteLine(
-                            "ERROR: Could not replace "
-                                + fileName
-                                + " - exit StarCraft II and hit \"Reload\" to fix install properly."
+                        this.TracingService.TraceMessage(
+                            $"ERROR: Could not replace '{fileName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
                         );
                     }
                 }
@@ -196,11 +195,13 @@ namespace Starcraft_Mod_Manager
                     try
                     {
                         File.Move(filePath, this.PathUtils.PathForMod(fileName));
-                        logBoxWriteLine("Moved " + fileName + " to Dependencies folder.");
+                        this.TracingService.TraceMessage($"Moved file '{fileName}' to Dependnecies folder.");
                     }
                     catch (IOException e)
                     {
-                        logBoxWriteLine("ERROR: Could not move " + fileName + " - is it open somewhere?");
+                        this.TracingService.TraceMessage(
+                            $"Could not move file '{fileName}' to Dependnecies folder. Is it open somewhere?"
+                        );
                     }
                 }
             }
@@ -225,21 +226,19 @@ namespace Starcraft_Mod_Manager
                     {
                         Directory.Delete(this.PathUtils.PathForMod(dirName), true);
                         Directory.Move(dirPath, this.PathUtils.PathForMod(dirName));
-                        logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
+                        this.TracingService.TraceMessage($"Moved file '{dirName}' to Dependencies folder.");
                     }
                     catch (IOException e)
                     {
-                        logBoxWriteLine(
-                            "ERROR: Could not replace "
-                                + dirName
-                                + " - exit StarCraft II and hit \"Reload\" to fix install properly."
+                        this.TracingService.TraceMessage(
+                            $"ERROR: Could not replace '{dirName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
                         );
                     }
                 }
                 else
                 {
                     Directory.Move(dirPath, this.PathUtils.PathForMod(dirName));
-                    logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
+                    this.TracingService.TraceMessage($"Moved file '{dirName}' to Dependencies folder.");
                 }
             }
         }
@@ -267,17 +266,22 @@ namespace Starcraft_Mod_Manager
                 string[] files = Directory.GetFiles(dir, "metadata.txt", SearchOption.AllDirectories);
                 if (files.Length == 0)
                 {
-                    logBoxWriteLine("FAILED TO LOAD: Unable to find metadata.txt for: " + Path.GetFileName(dir));
+                    this.TracingService.TraceMessage(
+                        $"FAILED TO LOAD: Unable to find metadata.txt for '{Path.GetFileName(dir)}'."
+                    );
+
                     continue;
                 }
                 else if (files.Length >= 2)
                 {
-                    logBoxWriteLine("WARNING: Multiple metadata.txt found for: " + dir);
+                    this.TracingService.TraceMessage($"WARNING: Multiple metadata.txt found for '{dir}'.");
+
                     continue;
                 }
                 else if (!Mod.TryCreate(files[0], out Mod currentMod))
                 {
-                    logBoxWriteLine("WARNING: failed to create Mod using metadata located for: " + dir);
+                    this.TracingService.TraceMessage($"WARNING: Multiple metadata.txt found for '{dir}'.");
+
                     continue;
                 }
                 else
@@ -337,6 +341,11 @@ namespace Starcraft_Mod_Manager
             }
         }
 
+        private IEnumerable<(ModUserControl modUserControl, Campaign campaign)> GetAllControlAndCampaigns()
+        {
+            return CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
+        }
+
         private IEnumerable<(ModUserControl modUserControl, IEnumerable<Mod> mods)> GetAllControlAndMods()
         {
             return CampaignsWithModUserControl.Select(this.GetControlAndModsFor);
@@ -381,14 +390,6 @@ namespace Starcraft_Mod_Manager
             //if (lineParts[0].ToLower() == "lotvprologue") mod.SetPrologue(lineParts[1]);
         }
         */
-
-        private void logBoxWriteLine(string message)
-        {
-            logBox.Text += message;
-            logBox.SelectionStart = logBox.Text.Length;
-            logBox.ScrollToCaret();
-            logBox.Text += "\n";
-        }
 
         private void displayBox_KeyDown(object sender, KeyEventArgs e)
         {
@@ -943,9 +944,8 @@ namespace Starcraft_Mod_Manager
 
         private void SC2CCM_DragEnter(object sender, DragEventArgs e)
         {
-            string filename;
             bool valid;
-            valid = GetFilename(out filename, e);
+            valid = GetFilename(out string filename, e);
 
             if (valid)
             {
@@ -953,7 +953,7 @@ namespace Starcraft_Mod_Manager
             }
             else
             {
-                logBoxWriteLine("Debug: Drag Enter with fn " + filename + " invalid.");
+                this.TracingService.TraceMessage($"DEBUG: Drag Enter with fileName '{filename}' is invalid.");
                 e.Effect = DragDropEffects.None;
             }
         }
@@ -1031,5 +1031,7 @@ namespace Starcraft_Mod_Manager
         private void wolBox_Enter(object sender, EventArgs e) { }
 
         private void logBox_TextChanged(object sender, EventArgs e) { }
+
+        private void ncoModUserControl_Load(object sender, EventArgs e) { }
     }
 }

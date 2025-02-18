@@ -98,6 +98,7 @@
             this.ncoModUserControl.Name = "ncoModUserControl";
             this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
             this.ncoModUserControl.TabIndex = 28;
+            this.ncoModUserControl.Load += new System.EventHandler(this.ncoModUserControl_Load);
             // 
             // lotvModUserControl
             // 

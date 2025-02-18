@@ -21,7 +21,6 @@ namespace Starcraft_Mod_Manager
 
         public void SetAvaialbleMods(IEnumerable<Mod> mods)
         {
-            this.AvailableMods = mods;
             this.PopulateDropdowns(mods);
         }
 
@@ -55,8 +54,6 @@ namespace Starcraft_Mod_Manager
         {
             return;
         }
-
-        private IEnumerable<Mod> AvailableMods { get; set; }
 
         /// <summary> 
         /// Required designer variable.

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
+using ModManager.StarCraft.Services;
 
 namespace Starcraft_Mod_Manager
 {
@@ -15,6 +16,8 @@ namespace Starcraft_Mod_Manager
         }
 
         public Mod[] Mods { get; set; }
+
+        public ITracingService TracingService { get; set; }
 
         private Mod SelectedMod => this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] as Mod;
 

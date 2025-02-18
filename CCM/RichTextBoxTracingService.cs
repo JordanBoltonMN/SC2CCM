@@ -13,7 +13,9 @@ namespace Starcraft_Mod_Manager
 
         public void TraceMessage(string message)
         {
-            this.RichTextBox.Text += (Environment.NewLine + message);
+            this.RichTextBox.Text += (message + Environment.NewLine);
+            this.RichTextBox.SelectionStart = this.RichTextBox.Text.Length;
+            this.RichTextBox.ScrollToCaret();
         }
 
         private RichTextBox RichTextBox { get; }
