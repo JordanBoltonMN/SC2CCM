@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,24 +6,25 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 public class Updater
 {
-
-	public Updater()
-	{
+    public Updater()
+    {
         int needsUpdate = CheckForUpdates();
-        if (needsUpdate > 0) RunUpdater(needsUpdate);
+        if (needsUpdate > 0)
+            RunUpdater(needsUpdate);
     }
 
     /* Fucntion that goes out to github to check if a new version number has been posted.
      * If so, downloads the files that are new and then runs the updater program in order to update itself.
      * Otherwise, we'd get a file in use error.
-     * 
+     *
      * This is also the jankiest, worst updater in the history of updaters.
      * I've never written an updater before because I haven't needed to - it's not my line of work.
      * This is *not* a good solution and I at least mostly regret the way I've done it.
-     * However, I don't have enough time to rewrite it so yeah.  
+     * However, I don't have enough time to rewrite it so yeah.
      */
     private int CheckForUpdates()
     {
@@ -58,7 +58,11 @@ public class Updater
 
         if ((int)mostRecentReleases[0].id != localVersions[0] || (int)mostRecentReleases[1].id != localVersions[1])
         {
-            DialogResult dialogResult = MessageBox.Show("It looks like you need an update!\nWould you like to download it?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                "It looks like you need an update!\nWould you like to download it?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
             if (dialogResult != DialogResult.Yes)
             {
                 return 0;
@@ -73,7 +77,10 @@ public class Updater
             {
                 try
                 {
-                    client.DownloadFile((string)mostRecentReleases[1].assets[0].browser_download_url, "SC2CCM Updater.exe");
+                    client.DownloadFile(
+                        (string)mostRecentReleases[1].assets[0].browser_download_url,
+                        "SC2CCM Updater.exe"
+                    );
                     retVar = -1;
                 }
                 catch (Exception e)
@@ -106,13 +113,16 @@ public class Updater
             }
         }
 
-        handleFiles(localVersions);  // We're committed.
+        handleFiles(localVersions); // We're committed.
         return retVar; //1 = we need to close and install the new update.
     }
 
-    static private List<int> getLocalVersionNumbers()
+    private static List<int> getLocalVersionNumbers()
     {
-        string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"SC2CCM\SC2CCMU.txt");
+        string filePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            @"SC2CCM\SC2CCMU.txt"
+        );
         int[] array = { 0, 0 };
         List<int> ids = new List<int>(array);
 
@@ -137,7 +147,7 @@ public class Updater
         return ids;
     }
 
-    static private void handleFiles()
+    private static void handleFiles()
     {
         var roamingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var filePath = Path.Combine(roamingDirectory, @"SC2CCM\SC2CCMU.txt");
@@ -159,7 +169,7 @@ public class Updater
         }
     }
 
-    static private void handleFiles(List<int> versionIDs)
+    private static void handleFiles(List<int> versionIDs)
     {
         //MessageBox.Show("we do be handlin' files");
         var roamingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -191,7 +201,7 @@ public class Updater
         Environment.Exit(0);
     }
 
-    static private List<dynamic> handleApi(dynamic apiResp)
+    private static List<dynamic> handleApi(dynamic apiResp)
     {
         dynamic[] array = { "", "" };
         List<dynamic> recentVersionAPI = new List<dynamic>(array);
@@ -227,7 +237,7 @@ public class Updater
         return recentVersionAPI;
     }
 
-    static public string Get(string uri)
+    public static string Get(string uri)
     {
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
         request.UserAgent = "SC2CCMU";

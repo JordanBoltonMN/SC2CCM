@@ -48,5 +48,11 @@
     <Compile Include="ZipService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ModManager.StarCraft.Base\ModManager.StarCraft.Base.csproj">
+      <Project>{aff2e91d-7789-4c51-8854-106c3890309c}</Project>
+      <Name>ModManager.StarCraft.Base</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

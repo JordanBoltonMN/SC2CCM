@@ -1,9 +1,9 @@
-﻿using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Base;
-using System;
+﻿using System;
 using System.IO;
-using System.Windows.Forms;
 using System.Linq;
+using System.Windows.Forms;
+using ModManager.StarCraft.Base;
+using ModManager.StarCraft.Base.Enums;
 
 namespace Starcraft_Mod_Manager
 {
@@ -16,45 +16,35 @@ namespace Starcraft_Mod_Manager
 
         public Mod[] Mods { get; set; }
 
-        private void ModUserControl_Load(object sender, EventArgs e)
-        {
+        private Mod SelectedMod => this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] as Mod;
 
-        }
+        private void ModUserControl_Load(object sender, EventArgs e) { }
 
-        private void groupBox_Enter(object sender, EventArgs e)
-        {
+        private void groupBox_Enter(object sender, EventArgs e) { }
 
-        }
-
-        private void selectModTitle_Click(object sender, EventArgs e)
-        {
-
-        }
+        private void selectModTitle_Click(object sender, EventArgs e) { }
 
         private void modSelectDropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.setActiveButton.Enabled = true;
             this.deleteButton.Enabled = true;
 
-            this.SetActiveMod(this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] as Mod);
+            this.SetActiveMod(this.SelectedMod);
         }
 
         private void deleteButton_Click(object sender, EventArgs e)
         {
-            Mod selectedMod = this.Mods.ElementAtOrDefault(this.modSelectDropdown.SelectedIndex);
-
-            if (selectedMod == null)
+            if (this.SelectedMod == null)
             {
                 return;
             }
 
-            string modPath = selectedMod.Path;
-            
-            DialogResult shouldDeleteMod = MessageBox.Show(
-                $"Are you sure you want to delete {selectedMod.Title}?",
-                "StarCraft II Custom Campaign Manager",
-                MessageBoxButtons.YesNo
-            );
+            bool shouldDeleteMod = Prompter.AskYesNo($"Are you sure you want to delete '{this.SelectedMod}'?");
+
+            if (!shouldDeleteMod)
+            {
+                return;
+            }
 
             /*
             if (shouldDeleteMod == DialogResult.Yes)

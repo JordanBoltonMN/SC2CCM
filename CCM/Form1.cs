@@ -34,6 +34,7 @@ namespace Starcraft_Mod_Manager
             unzipZips();
             handleDependencies();
         }
+
         private void SC2MM_Shown(object sender, EventArgs e)
         {
             populateModLists();
@@ -56,19 +57,20 @@ namespace Starcraft_Mod_Manager
                 {
                     File.Delete("SC2CCM Updater.exe");
                     File.Move("SC2CCMU.exe", "SC2CCM Updater.exe");
-                } catch (IOException e)
+                }
+                catch (IOException e)
                 {
                     MessageBox.Show("Failed to delete/move the Updater!");
                 }
             }
         }
 
-       /* Pulls the StarCraft II directory from whatever program .SC2Save files are opened with (it's often SC2!)
-        * If that turns up invalid for some reason or SC2CCM.txt is deleted, it'll ask the user to find it for us.
-        * An issue I found that's more common than expected is multiple copies of SC2 being installed.
-        * This will only find one of them and it may not be the one that gets launched, leading to "no mods"
-        * when mods are selected.
-        */
+        /* Pulls the StarCraft II directory from whatever program .SC2Save files are opened with (it's often SC2!)
+         * If that turns up invalid for some reason or SC2CCM.txt is deleted, it'll ask the user to find it for us.
+         * An issue I found that's more common than expected is multiple copies of SC2 being installed.
+         * This will only find one of them and it may not be the one that gets launched, leading to "no mods"
+         * when mods are selected.
+         */
         public void findSC2()
         {
             string sc2filePath;
@@ -82,13 +84,20 @@ namespace Starcraft_Mod_Manager
                 }
                 catch (IOException e)
                 {
-                    MessageBox.Show("Unable to create configuration file/folder\nTry running this as administrator.", "StarCraft II Custom Campaign Manager");
+                    MessageBox.Show(
+                        "Unable to create configuration file/folder\nTry running this as administrator.",
+                        "StarCraft II Custom Campaign Manager"
+                    );
                     System.Windows.Forms.Application.Exit();
                 }
                 try
                 {
                     // Thanks to xpaperclip for this block.  Assumes directory based on what is pulled up with .SC2Save files.
-                    using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"Software\Classes\Blizzard.SC2Save\shell\open\command"))
+                    using (
+                        var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                            @"Software\Classes\Blizzard.SC2Save\shell\open\command"
+                        )
+                    )
                     {
                         if (key != null)
                         {
@@ -97,13 +106,14 @@ namespace Starcraft_Mod_Manager
                             {
                                 var s = value.ToString();
                                 s = s.Replace(" \"%1\"", "").Trim('\"');
-                                s = Path.GetDirectoryName(s);       // trim off SC2Switcher.exe
-                                s = Path.GetDirectoryName(s);       // trim off Support
+                                s = Path.GetDirectoryName(s); // trim off SC2Switcher.exe
+                                s = Path.GetDirectoryName(s); // trim off Support
                                 File.WriteAllText(filePath, s + @"\StarCraft II.exe");
                             }
                         }
                     }
-                } catch (Exception)
+                }
+                catch (Exception)
                 {
                     //If we have any issues and need to exit, make the file and force a default path.  We can handle that just ahead.
                     File.WriteAllText(filePath, @"C:\Program Files (x86)\StarCraft II\StarCraft II.exe");
@@ -119,13 +129,17 @@ namespace Starcraft_Mod_Manager
 
             if (!File.Exists(sc2filePath))
             {
-                MessageBox.Show("It looks like StarCraft II isn't in the default spot!\nPlease use the file browser and select Starcraft II.exe", "StarCraft II Custom Campaign Manager");
+                MessageBox.Show(
+                    "It looks like StarCraft II isn't in the default spot!\nPlease use the file browser and select Starcraft II.exe",
+                    "StarCraft II Custom Campaign Manager"
+                );
                 if (findSC2Dialogue.ShowDialog() == DialogResult.OK)
                 {
                     //I don't do a check for the filename because I don't know if it appears different in other languages.
                     sc2filePath = findSC2Dialogue.FileName;
                     File.WriteAllText(filePath, sc2filePath);
-                } else
+                }
+                else
                 {
                     System.Windows.Forms.Application.Exit();
                 }
@@ -139,14 +153,22 @@ namespace Starcraft_Mod_Manager
         public void verifyDirectories()
         {
             findSC2();
-            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign")) Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign");
-            if (!Directory.Exists(sc2BasePath + @"\Maps\CustomCampaigns")) Directory.CreateDirectory(sc2BasePath + @"\Maps\CustomCampaigns");
-            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\swarm")) Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\swarm");
-            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\swarm\evolution")) Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\swarm\evolution");
-            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\void")) Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\void");
-            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\voidprologue")) Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\voidprologue");
-            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\nova")) Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\nova");
-            if (!Directory.Exists(sc2BasePath + @"\Mods\")) Directory.CreateDirectory(sc2BasePath + @"\Mods\");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\CustomCampaigns"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\CustomCampaigns");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\swarm"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\swarm");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\swarm\evolution"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\swarm\evolution");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\void"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\void");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\voidprologue"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\voidprologue");
+            if (!Directory.Exists(sc2BasePath + @"\Maps\Campaign\nova"))
+                Directory.CreateDirectory(sc2BasePath + @"\Maps\Campaign\nova");
+            if (!Directory.Exists(sc2BasePath + @"\Mods\"))
+                Directory.CreateDirectory(sc2BasePath + @"\Mods\");
 
             //I don't think this is necessary, but I'll do it.  Sets all paths to non-read only.
             DirectoryInfo di = new DirectoryInfo(sc2BasePath + @"\Maps\CustomCampaigns");
@@ -188,7 +210,11 @@ namespace Starcraft_Mod_Manager
                     {
                         using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                         {
-                            ZipArchiveExtensions.ExtractToDirectory(archive, sc2BasePath + @"\Maps\CustomCampaigns\" + modFolderName, true);
+                            ZipArchiveExtensions.ExtractToDirectory(
+                                archive,
+                                sc2BasePath + @"\Maps\CustomCampaigns\" + modFolderName,
+                                true
+                            );
                             logBoxWriteLine("Unzipped " + Path.GetFileNameWithoutExtension(modFolderName) + ".");
                         }
                     }
@@ -201,23 +227,31 @@ namespace Starcraft_Mod_Manager
                     try
                     {
                         File.Delete(file);
-                    } catch (IOException)
+                    }
+                    catch (IOException)
                     {
                         logBoxWriteLine("Could not delete zip file " + file + " - file in use.");
                     }
-
                 }
-                string[] files = Directory.GetFiles(sc2BasePath + @"\Maps\CustomCampaigns\", "*.SC2Mod", SearchOption.AllDirectories); //right here
+                string[] files = Directory.GetFiles(
+                    sc2BasePath + @"\Maps\CustomCampaigns\",
+                    "*.SC2Mod",
+                    SearchOption.AllDirectories
+                ); //right here
             }
         }
 
-        /* Moves all the .SC2Mod files and folders into the Mods folder. 
+        /* Moves all the .SC2Mod files and folders into the Mods folder.
          * If a .SC2Mod file exists and a .SC2Mod folder is moved in (if the dev updates the method),
          * then an error would occur.  This is handled here.
          */
         public void handleDependencies()
         {
-            string[] files = Directory.GetFiles(sc2BasePath + @"\Maps\CustomCampaigns\", "*.SC2Mod", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(
+                sc2BasePath + @"\Maps\CustomCampaigns\",
+                "*.SC2Mod",
+                SearchOption.AllDirectories
+            );
             foreach (string filePath in files)
             {
                 string fileName = Path.GetFileName(filePath);
@@ -233,24 +267,37 @@ namespace Starcraft_Mod_Manager
                         File.Delete(sc2BasePath + @"\Mods\" + fileName);
                         File.Move(filePath, sc2BasePath + @"\Mods\" + fileName);
                         logBoxWriteLine("Moved " + fileName + " to Dependencies folder.");
-                    } catch (IOException e)
-                    {
-                        logBoxWriteLine("ERROR: Could not replace " + fileName + " - exit StarCraft II and hit \"Reload\" to fix install properly.");
                     }
-                } else
+                    catch (IOException e)
+                    {
+                        logBoxWriteLine(
+                            "ERROR: Could not replace "
+                                + fileName
+                                + " - exit StarCraft II and hit \"Reload\" to fix install properly."
+                        );
+                    }
+                }
+                else
                 {
                     try
                     {
                         File.Move(filePath, sc2BasePath + @"\Mods\" + fileName);
                         logBoxWriteLine("Moved " + fileName + " to Dependencies folder.");
-                    } catch (IOException e)
+                    }
+                    catch (IOException e)
                     {
                         logBoxWriteLine("ERROR: Could not move " + fileName + " - is it open somewhere?");
                     }
                 }
             }
 
-            foreach (string dirPath in Directory.GetDirectories(sc2BasePath + @"\Maps\CustomCampaigns\", "*.SC2Mod", SearchOption.AllDirectories))
+            foreach (
+                string dirPath in Directory.GetDirectories(
+                    sc2BasePath + @"\Maps\CustomCampaigns\",
+                    "*.SC2Mod",
+                    SearchOption.AllDirectories
+                )
+            )
             {
                 string dirName = Path.GetFileName(dirPath);
                 // File with name name as folder check
@@ -265,21 +312,25 @@ namespace Starcraft_Mod_Manager
                         Directory.Delete(sc2BasePath + @"\Mods\" + dirName, true);
                         Directory.Move(dirPath, sc2BasePath + @"\Mods\" + dirName);
                         logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
-
                     }
                     catch (IOException e)
                     {
-                        logBoxWriteLine("ERROR: Could not replace " + dirName + " - exit StarCraft II and hit \"Reload\" to fix install properly.");
+                        logBoxWriteLine(
+                            "ERROR: Could not replace "
+                                + dirName
+                                + " - exit StarCraft II and hit \"Reload\" to fix install properly."
+                        );
                     }
-                } else
+                }
+                else
                 {
-                        Directory.Move(dirPath, sc2BasePath + @"\Mods\" + dirName);
-                        logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
+                    Directory.Move(dirPath, sc2BasePath + @"\Mods\" + dirName);
+                    logBoxWriteLine("Moved " + dirName + " to Dependencies folder.");
                 }
             }
         }
 
-        /* Builds the modLists array  based on the folders that exist in the customcampaigns folder. 
+        /* Builds the modLists array  based on the folders that exist in the customcampaigns folder.
          * If a mod does not have a campaign specified in the metadata file, it is assigned to None.
          */
         public void populateModLists()
@@ -291,7 +342,13 @@ namespace Starcraft_Mod_Manager
             }
 
             // Search in each directory
-            foreach (string dir in Directory.GetDirectories(sc2BasePath + @"\Maps\CustomCampaigns\", "*", SearchOption.TopDirectoryOnly))
+            foreach (
+                string dir in Directory.GetDirectories(
+                    sc2BasePath + @"\Maps\CustomCampaigns\",
+                    "*",
+                    SearchOption.TopDirectoryOnly
+                )
+            )
             {
                 // for a metadata.txt file
                 string[] files = Directory.GetFiles(dir, "metadata.txt", SearchOption.AllDirectories);
@@ -413,7 +470,11 @@ namespace Starcraft_Mod_Manager
         /* Asks if the user wants to set the single newly imported mod to active.  */
         public void promptNewMod(string modName, int campaign)
         {
-            DialogResult dialogResult = MessageBox.Show("Import of " + modName + " successful, would you like to make it the active campaign?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                "Import of " + modName + " successful, would you like to make it the active campaign?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
             if (dialogResult == DialogResult.Yes)
             {
                 if (campaign == (int)Campaign.WoL)
@@ -440,7 +501,7 @@ namespace Starcraft_Mod_Manager
         }
 
         /* Sets the display boxes (Title, Author, Version) for the active mod.
-         * Sets to a default if no metadata.txt is found. 
+         * Sets to a default if no metadata.txt is found.
          */
         public void setInfoBoxes()
         {
@@ -521,11 +582,16 @@ namespace Starcraft_Mod_Manager
         private void processLine(string line, Mod mod)
         {
             String[] lineParts = line.Split(new[] { '=' }, 2);
-            if (lineParts[0].ToLower() == "title") mod.SetTitle(lineParts[1]);
-            if (lineParts[0].ToLower() == "desc") mod.SetDesc(lineParts[1]);
-            if (lineParts[0].ToLower() == "campaign") mod.SetCampaign(lineParts[1]);
-            if (lineParts[0].ToLower() == "version") mod.SetVersion(lineParts[1]);
-            if (lineParts[0].ToLower() == "author") mod.SetAuthor(lineParts[1]);
+            if (lineParts[0].ToLower() == "title")
+                mod.SetTitle(lineParts[1]);
+            if (lineParts[0].ToLower() == "desc")
+                mod.SetDesc(lineParts[1]);
+            if (lineParts[0].ToLower() == "campaign")
+                mod.SetCampaign(lineParts[1]);
+            if (lineParts[0].ToLower() == "version")
+                mod.SetVersion(lineParts[1]);
+            if (lineParts[0].ToLower() == "author")
+                mod.SetAuthor(lineParts[1]);
         }
 
         /* Recursively copies all files and folders of a source folder to a target folder.
@@ -560,18 +626,31 @@ namespace Starcraft_Mod_Manager
                     }
                     catch (IOException e)
                     {
-                        logBoxWriteLine("ERROR: Could not delete campaign file " + Path.GetFileNameWithoutExtension(file) + " - please exit the campaign and try again.");
+                        logBoxWriteLine(
+                            "ERROR: Could not delete campaign file "
+                                + Path.GetFileNameWithoutExtension(file)
+                                + " - please exit the campaign and try again."
+                        );
                         retVal = false;
                     }
                 }
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 logBoxWriteLine("ERROR: Did not find directory " + dir + " to clear.");
             }
             foreach (string subdir in Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly))
             {
                 Console.WriteLine("SUBDIRVISIONS: " + subdir);
-                if (!(subdir.EndsWith(@"Campaign\swarm") || subdir.EndsWith(@"Campaign\void") || subdir.EndsWith(@"Campaign\nova") || subdir.EndsWith(@"Campaign\swarm\evolution") || subdir.EndsWith(@"Campaign\voidprologue")))
+                if (
+                    !(
+                        subdir.EndsWith(@"Campaign\swarm")
+                        || subdir.EndsWith(@"Campaign\void")
+                        || subdir.EndsWith(@"Campaign\nova")
+                        || subdir.EndsWith(@"Campaign\swarm\evolution")
+                        || subdir.EndsWith(@"Campaign\voidprologue")
+                    )
+                )
                 {
                     Console.WriteLine("I'm attempting to delete ^");
                     Directory.Delete(subdir, true);
@@ -620,7 +699,7 @@ namespace Starcraft_Mod_Manager
             e.SuppressKeyPress = true;
         }
 
-        /* 
+        /*
          * I've opted to keep all of these as separate functions instead of passing them into a larger "handleSetButton" function.
          * Because the directory structure is a little wonky, I'd probably have to pass in the directory and some string helpers as well.
          * To avoid this, I'd probably have to make a whole set of extra helper functions and change some of my setup, which I don't have time to do.
@@ -628,7 +707,8 @@ namespace Starcraft_Mod_Manager
          */
         private void wolSetButton_Click(object sender, EventArgs e)
         {
-            if (wolSelectBox.SelectedIndex < 0) return;
+            if (wolSelectBox.SelectedIndex < 0)
+                return;
             Mod selectedMod = modLists[1][wolSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
             if (clearDir(sc2BasePath + @"\Maps\Campaign"))
@@ -637,7 +717,8 @@ namespace Starcraft_Mod_Manager
                 setInfoBoxes();
                 logBoxWriteLine("Set Wings Campaign to " + selectedMod.GetTitle() + "!");
                 hideWarningImg(wolWarningImg);
-            } else
+            }
+            else
             {
                 logBoxWriteLine("ERROR: Could not set Wings campaign - SC2 files in use.");
                 showWarningImg(wolWarningImg);
@@ -648,7 +729,11 @@ namespace Starcraft_Mod_Manager
         {
             Mod selectedMod = modLists[1][wolSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
-            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.GetTitle() + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                "Are you sure you want to delete " + selectedMod.GetTitle() + "?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
             if (dialogResult == DialogResult.Yes)
             {
                 while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
@@ -665,7 +750,9 @@ namespace Starcraft_Mod_Manager
                 }
                 else
                 {
-                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere.");
+                    logBoxWriteLine(
+                        "ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere."
+                    );
                 }
             }
         }
@@ -678,17 +765,18 @@ namespace Starcraft_Mod_Manager
                 logBoxWriteLine("Clear successful!");
                 setInfoBoxes();
                 hideWarningImg(wolWarningImg);
-            } else
+            }
+            else
             {
                 logBoxWriteLine("ERROR: Could not set Wings campaign - SC2 files in use.");
                 showWarningImg(wolWarningImg);
             }
         }
 
-
         private void hotsSetButton_Click(object sender, EventArgs e)
         {
-            if (hotsSelectBox.SelectedIndex < 0) return;
+            if (hotsSelectBox.SelectedIndex < 0)
+                return;
             Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
             if (clearDir(sc2BasePath + @"\Maps\Campaign\swarm"))
@@ -709,7 +797,11 @@ namespace Starcraft_Mod_Manager
         {
             Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
-            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.GetTitle() + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                "Are you sure you want to delete " + selectedMod.GetTitle() + "?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
             if (dialogResult == DialogResult.Yes)
             {
                 while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
@@ -726,7 +818,9 @@ namespace Starcraft_Mod_Manager
                 }
                 else
                 {
-                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere.");
+                    logBoxWriteLine(
+                        "ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere."
+                    );
                 }
             }
         }
@@ -734,7 +828,10 @@ namespace Starcraft_Mod_Manager
         private void hotsRestoreButton_Click(object sender, EventArgs e)
         {
             logBoxWriteLine("Resetting Swarm Campaign to default.");
-            if (clearDir(sc2BasePath + @"\Maps\Campaign\swarm") && clearDir(sc2BasePath + @"\Maps\Campaign\swarm\evolution"))
+            if (
+                clearDir(sc2BasePath + @"\Maps\Campaign\swarm")
+                && clearDir(sc2BasePath + @"\Maps\Campaign\swarm\evolution")
+            )
             {
                 logBoxWriteLine("Clear complete!");
                 setInfoBoxes();
@@ -743,16 +840,19 @@ namespace Starcraft_Mod_Manager
             else
             {
                 logBoxWriteLine("ERROR: Could not set Swarm campaign - SC2 files in use.");
-                showWarningImg(hotsWarningImg); 
+                showWarningImg(hotsWarningImg);
             }
         }
 
         private void lotvSetButton_Click(object sender, EventArgs e)
         {
-            if (lotvSelectBox.SelectedIndex < 0) return;
+            if (lotvSelectBox.SelectedIndex < 0)
+                return;
             Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
-            if (clearDir(sc2BasePath + @"\Maps\Campaign\void") && clearDir(sc2BasePath + @"\Maps\Campaign\voidprologue"))
+            if (
+                clearDir(sc2BasePath + @"\Maps\Campaign\void") && clearDir(sc2BasePath + @"\Maps\Campaign\voidprologue")
+            )
             {
                 string[] subdirs = Directory.GetDirectories(modPath, "voidprologue", SearchOption.AllDirectories);
                 if (subdirs.Length > 0)
@@ -781,7 +881,11 @@ namespace Starcraft_Mod_Manager
         {
             Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
-            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.GetTitle() + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                "Are you sure you want to delete " + selectedMod.GetTitle() + "?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
             if (dialogResult == DialogResult.Yes)
             {
                 while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
@@ -798,7 +902,9 @@ namespace Starcraft_Mod_Manager
                 }
                 else
                 {
-                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere.");
+                    logBoxWriteLine(
+                        "ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere."
+                    );
                 }
             }
         }
@@ -806,7 +912,9 @@ namespace Starcraft_Mod_Manager
         private void lotvRestoreButton_Click(object sender, EventArgs e)
         {
             logBoxWriteLine("Resetting Void Campaign to default.");
-            if (clearDir(sc2BasePath + @"\Maps\Campaign\void") && clearDir(sc2BasePath + @"\Maps\Campaign\voidprologue"))
+            if (
+                clearDir(sc2BasePath + @"\Maps\Campaign\void") && clearDir(sc2BasePath + @"\Maps\Campaign\voidprologue")
+            )
             {
                 logBoxWriteLine("Clear complete!");
                 setInfoBoxes();
@@ -821,7 +929,8 @@ namespace Starcraft_Mod_Manager
 
         private void ncoSetButton_Click(object sender, EventArgs e)
         {
-            if (ncoSelectBox.SelectedIndex < 0) return;
+            if (ncoSelectBox.SelectedIndex < 0)
+                return;
             Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
             if (clearDir(sc2BasePath + @"\Maps\Campaign\nova"))
@@ -842,7 +951,11 @@ namespace Starcraft_Mod_Manager
         {
             Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
             string modPath = selectedMod.GetPath();
-            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.GetTitle() + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show(
+                "Are you sure you want to delete " + selectedMod.GetTitle() + "?",
+                "StarCraft II Custom Campaign Manager",
+                MessageBoxButtons.YesNo
+            );
             if (dialogResult == DialogResult.Yes)
             {
                 while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
@@ -859,7 +972,9 @@ namespace Starcraft_Mod_Manager
                 }
                 else
                 {
-                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere.");
+                    logBoxWriteLine(
+                        "ERROR: Could not delete " + selectedMod.GetTitle() + " - a file may be open somewhere."
+                    );
                 }
             }
         }
@@ -882,10 +997,14 @@ namespace Starcraft_Mod_Manager
 
         private void infoButton_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("To Install a Custom Campaign:\n" +
-                "1. Drag and drop the mod .zip file onto the Custom Campaign Manager\n" +
-                "2. Select the custom campaign from the dropdown list and hit \"Set to Active Campaign\"", "Starcraft II Custom Campaign Manager");
+            MessageBox.Show(
+                "To Install a Custom Campaign:\n"
+                    + "1. Drag and drop the mod .zip file onto the Custom Campaign Manager\n"
+                    + "2. Select the custom campaign from the dropdown list and hit \"Set to Active Campaign\"",
+                "Starcraft II Custom Campaign Manager"
+            );
         }
+
         private void importButton_Click(object sender, EventArgs e)
         {
             string[] targetFilePaths;
@@ -966,12 +1085,12 @@ namespace Starcraft_Mod_Manager
             if (valid)
             {
                 e.Effect = DragDropEffects.Move;
-            } else
+            }
+            else
             {
                 logBoxWriteLine("Debug: Drag Enter with fn " + filename + " invalid.");
                 e.Effect = DragDropEffects.None;
             }
-            
         }
 
         private void SC2CCM_DragLeave(object sender, EventArgs e)
@@ -1023,7 +1142,10 @@ namespace Starcraft_Mod_Manager
         private void handleWarningHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
-            tt.SetToolTip((PictureBox)sender, "Warning: Active campaign may have missing or inconsistent files.\nThis usually due to changing campaigns while in a mission or menu.\nPlease exit to the menu in SC2 and set an active mod to clear this.");
+            tt.SetToolTip(
+                (PictureBox)sender,
+                "Warning: Active campaign may have missing or inconsistent files.\nThis usually due to changing campaigns while in a mission or menu.\nPlease exit to the menu in SC2 and set an active mod to clear this."
+            );
         }
 
         private void showWarningImg(PictureBox warningImg)
@@ -1080,7 +1202,9 @@ namespace Starcraft_Mod_Manager
 
                 if (!completeFileName.StartsWith(destinationDirectoryFullPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new IOException("Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
+                    throw new IOException(
+                        "Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability"
+                    );
                 }
 
                 if (file.Name == "")
@@ -1089,7 +1213,6 @@ namespace Starcraft_Mod_Manager
                 }
                 else
                 {
-
                     string targetDir = Path.GetDirectoryName(completeFileName);
                     if (!Directory.Exists(targetDir))
                     {

@@ -51,6 +51,11 @@ namespace Starcraft_Mod_Manager
             }
         }
 
+        public void DeleteMod(Mod mod)
+        {
+            return;
+        }
+
         private IEnumerable<Mod> AvailableMods { get; set; }
 
         /// <summary> 

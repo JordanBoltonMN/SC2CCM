@@ -35,10 +35,10 @@
             this.importPicturebox = new System.Windows.Forms.PictureBox();
             this.logBox = new System.Windows.Forms.RichTextBox();
             this.selectFolderDialogue = new System.Windows.Forms.OpenFileDialog();
-            this.wolModUserControl = new Starcraft_Mod_Manager.ModUserControl();
-            this.hotsModUserControl = new Starcraft_Mod_Manager.ModUserControl();
-            this.lotvModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.ncoModUserControl = new Starcraft_Mod_Manager.ModUserControl();
+            this.lotvModUserControl = new Starcraft_Mod_Manager.ModUserControl();
+            this.hotsModUserControl = new Starcraft_Mod_Manager.ModUserControl();
+            this.wolModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             ((System.ComponentModel.ISupportInitialize)(this.importPicturebox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -84,39 +84,44 @@
             this.logBox.Size = new System.Drawing.Size(256, 56);
             this.logBox.TabIndex = 22;
             this.logBox.Text = "";
+            this.logBox.TextChanged += new System.EventHandler(this.logBox_TextChanged);
             this.logBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.logBox_KeyDown);
             // 
             // selectFolderDialogue
             // 
             this.selectFolderDialogue.Multiselect = true;
             // 
-            // wolModUserControl
+            // ncoModUserControl
             // 
-            this.wolModUserControl.Location = new System.Drawing.Point(12, 12);
-            this.wolModUserControl.Name = "wolModUserControl";
-            this.wolModUserControl.Size = new System.Drawing.Size(190, 280);
-            this.wolModUserControl.TabIndex = 25;
-            // 
-            // hotsModUserControl
-            // 
-            this.hotsModUserControl.Location = new System.Drawing.Point(208, 12);
-            this.hotsModUserControl.Name = "hotsModUserControl";
-            this.hotsModUserControl.Size = new System.Drawing.Size(190, 280);
-            this.hotsModUserControl.TabIndex = 26;
+            this.ncoModUserControl.Location = new System.Drawing.Point(600, 12);
+            this.ncoModUserControl.Mods = null;
+            this.ncoModUserControl.Name = "ncoModUserControl";
+            this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
+            this.ncoModUserControl.TabIndex = 28;
             // 
             // lotvModUserControl
             // 
             this.lotvModUserControl.Location = new System.Drawing.Point(404, 12);
+            this.lotvModUserControl.Mods = null;
             this.lotvModUserControl.Name = "lotvModUserControl";
             this.lotvModUserControl.Size = new System.Drawing.Size(190, 280);
             this.lotvModUserControl.TabIndex = 27;
             // 
-            // ncoModUserControl
+            // hotsModUserControl
             // 
-            this.ncoModUserControl.Location = new System.Drawing.Point(600, 12);
-            this.ncoModUserControl.Name = "ncoModUserControl";
-            this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
-            this.ncoModUserControl.TabIndex = 28;
+            this.hotsModUserControl.Location = new System.Drawing.Point(208, 12);
+            this.hotsModUserControl.Mods = null;
+            this.hotsModUserControl.Name = "hotsModUserControl";
+            this.hotsModUserControl.Size = new System.Drawing.Size(190, 280);
+            this.hotsModUserControl.TabIndex = 26;
+            // 
+            // wolModUserControl
+            // 
+            this.wolModUserControl.Location = new System.Drawing.Point(12, 12);
+            this.wolModUserControl.Mods = null;
+            this.wolModUserControl.Name = "wolModUserControl";
+            this.wolModUserControl.Size = new System.Drawing.Size(190, 280);
+            this.wolModUserControl.TabIndex = 25;
             // 
             // FormMain
             // 
