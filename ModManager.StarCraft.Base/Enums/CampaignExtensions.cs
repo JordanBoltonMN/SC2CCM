@@ -21,7 +21,7 @@ namespace ModManager.StarCraft.Base.Enums
                     return Color.FromArgb(128, 255, 128);
 
                 default:
-                    return Color.FromArgb(0, 0, 0);
+                    return Color.FromKnownColor(KnownColor.Fuchsia);
             }
         }
 
