@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Services
 {
@@ -47,7 +48,7 @@ namespace ModManager.StarCraft.Services
                         Directory.CreateDirectory(targetDir);
                     }
 
-                    tracingService.TraceMessage($"Extracting '{completeFileName}' to '{targetDir}'.");
+                    // tracingService.TraceDebug($"Extracting '{completeFileName}' to '{targetDir}'.");
 
                     file.ExtractToFile(completeFileName, true);
                 }

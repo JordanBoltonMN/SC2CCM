@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using ModManager.StarCraft.Services;
+using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base.Tracing
 {
@@ -27,18 +27,36 @@ namespace ModManager.StarCraft.Base.Tracing
         private string CurrentOutputFilePath { get; set; }
         private long CurrentFileSizeInBytes { get; set; }
 
-        /// <summary>
-        /// Writes a log entry to the current file; if needed, rolls to a new file.
-        /// </summary>
-        public void TraceMessage(string message)
+        public void TraceMessage(TracingLevel level, string message)
+        {
+            this.EmitMessageToFile(level, message);
+        }
+
+        public void TraceDebug(string message)
+        {
+            this.EmitMessageToFile(TracingLevel.Debug, message);
+        }
+
+        public void TraceWarning(string message)
+        {
+            this.EmitMessageToFile(TracingLevel.Warning, message);
+        }
+
+        public void TraceError(string message)
+        {
+            this.EmitMessageToFile(TracingLevel.Error, message);
+        }
+
+        private void EmitMessageToFile(TracingLevel level, string message)
         {
             lock (this.LockObject)
             {
-                string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
+                string logEntry =
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {this.GetTracingLevelPrefix(level)} {message}";
+
                 long logWriteSizeInBytes = Encoding.UTF8.GetByteCount(message);
                 long fileSizeIfLogWritten = this.CurrentFileSizeInBytes + logWriteSizeInBytes;
 
-                // Check if we need to roll the log
                 if (fileSizeIfLogWritten >= this.MaxFileSizeBytes)
                 {
                     this.RollFile();
@@ -47,8 +65,6 @@ namespace ModManager.StarCraft.Base.Tracing
                 this.OutputWriter.WriteLine(logEntry);
                 this.OutputWriter.Flush();
 
-                // Update current file size
-                // Note that we add the length of the message plus a newline character (approx).
                 this.CurrentFileSizeInBytes = fileSizeIfLogWritten;
             }
         }
@@ -82,6 +98,24 @@ namespace ModManager.StarCraft.Base.Tracing
 
             this.OutputWriter = new StreamWriter(this.CurrentOutputFilePath, append: false);
             this.CurrentFileSizeInBytes = 0;
+        }
+
+        private string GetTracingLevelPrefix(TracingLevel tracingLevel)
+        {
+            switch (tracingLevel)
+            {
+                case TracingLevel.Debug:
+                    return "DEBUG";
+
+                case TracingLevel.Warning:
+                    return "WARNING";
+
+                case TracingLevel.Error:
+                    return "ERROR";
+
+                default:
+                    return "UNKNOWN";
+            }
         }
 
         public void Dispose()

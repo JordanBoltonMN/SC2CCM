@@ -1,60 +1,7 @@
-﻿using ModManager.StarCraft.Base;
-using ModManager.StarCraft.Base.Enums;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-
-namespace Starcraft_Mod_Manager
+﻿namespace Starcraft_Mod_Manager
 {
     partial class ModUserControl
     {
-        public void SetCampaign(Campaign campaign)
-        {
-            Color backgroundColor = campaign.ToBackgroundColor();
-            this.titleBox.BackColor = backgroundColor;
-            this.authorBox.BackColor = backgroundColor;
-            this.versionBox.BackColor = backgroundColor;
-
-            this.groupBox.Text = campaign.ToTitle();
-            this.selectModTitle.Text = $"Select {campaign.ToAbbreviation()} campaign";
-        }
-
-        public void SetAvaialbleMods(IEnumerable<Mod> mods)
-        {
-            this.PopulateDropdowns(mods);
-        }
-
-        public void PopulateDropdowns(IEnumerable<Mod> mods)
-        {
-            this.modSelectDropdown.Items.Clear();
-
-            foreach (Mod mod in mods)
-            {
-                this.modSelectDropdown.Items.Add(mod);
-            }
-        }
-
-        public void SetActiveMod(Mod mod)
-        {
-            if (mod is null)
-            {
-                this.titleBox.Text = "Default Campaign";
-                this.authorBox.Text = "Blizzard";
-                this.versionBox.Text = "N/A";
-            }
-            else
-            {
-                this.titleBox.Text = mod.Title;
-                this.authorBox.Text = mod.Author;
-                this.versionBox.Text = mod.Version;
-            }
-        }
-
-        public void DeleteMod(Mod mod)
-        {
-            return;
-        }
-
         /// <summary> 
         /// Required designer variable.
         /// </summary>
@@ -142,7 +89,6 @@ namespace Starcraft_Mod_Manager
             this.selectModTitle.Size = new System.Drawing.Size(114, 13);
             this.selectModTitle.TabIndex = 5;
             this.selectModTitle.Text = "Select (unknown) Mod";
-            this.selectModTitle.Click += new System.EventHandler(this.selectModTitle_Click);
             // 
             // setActiveButton
             // 
@@ -154,6 +100,7 @@ namespace Starcraft_Mod_Manager
             this.setActiveButton.TabIndex = 6;
             this.setActiveButton.Text = "Set to Active Campaign";
             this.setActiveButton.UseVisualStyleBackColor = true;
+            this.setActiveButton.Click += new System.EventHandler(this.setActiveButton_Click);
             // 
             // deleteButton
             // 
@@ -176,6 +123,7 @@ namespace Starcraft_Mod_Manager
             this.restoreButton.TabIndex = 8;
             this.restoreButton.Text = "Restore to Unmodified";
             this.restoreButton.UseVisualStyleBackColor = true;
+            this.restoreButton.Click += new System.EventHandler(this.restoreButton_Click);
             // 
             // authorBox
             // 
@@ -251,7 +199,6 @@ namespace Starcraft_Mod_Manager
             this.groupBox.TabIndex = 1;
             this.groupBox.TabStop = false;
             this.groupBox.Text = "(unknown)";
-            this.groupBox.Enter += new System.EventHandler(this.groupBox_Enter);
             // 
             // ModUserControl
             // 
@@ -260,7 +207,6 @@ namespace Starcraft_Mod_Manager
             this.Controls.Add(this.groupBox);
             this.Name = "ModUserControl";
             this.Size = new System.Drawing.Size(190, 280);
-            this.Load += new System.EventHandler(this.ModUserControl_Load);
             ((System.ComponentModel.ISupportInitialize)(this.warningImage)).EndInit();
             this.groupBox.ResumeLayout(false);
             this.groupBox.PerformLayout();

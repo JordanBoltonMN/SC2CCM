@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ModManager.StarCraft.Base.Tracing;
 
-namespace ModManager.StarCraft.Services
+namespace ModManager.StarCraft.Services.Tracing
 {
     public class CompositeTracingService : IDisposable, ITracingService
     {
@@ -20,17 +21,37 @@ namespace ModManager.StarCraft.Services
             }
         }
 
-        public void TraceMessage(string message)
+        public void TraceMessage(TracingLevel level, string message)
         {
-            foreach (ITracingService tracingService in this.RegisteredTracingServices)
-            {
-                tracingService.TraceMessage(message);
-            }
+            this.TraceMessageOnAll(level, message);
+        }
+
+        public void TraceDebug(string message)
+        {
+            this.TraceMessageOnAll(TracingLevel.Debug, message);
+        }
+
+        public void TraceWarning(string message)
+        {
+            this.TraceMessageOnAll(TracingLevel.Warning, message);
+        }
+
+        public void TraceError(string message)
+        {
+            this.TraceMessageOnAll(TracingLevel.Error, message);
         }
 
         public void Register(ITracingService tracingService)
         {
             this.RegisteredTracingServices.Add(tracingService);
+        }
+
+        private void TraceMessageOnAll(TracingLevel tracingLevel, string message)
+        {
+            foreach (ITracingService tracingService in this.RegisteredTracingServices)
+            {
+                tracingService.TraceMessage(tracingLevel, message);
+            }
         }
 
         private List<ITracingService> RegisteredTracingServices { get; }

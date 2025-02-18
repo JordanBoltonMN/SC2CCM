@@ -25,7 +25,11 @@ namespace SC2CCM_Updater_Form
             //System.Threading.Thread.Sleep(500);
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = @"SC2 Custom Campaign Manager.exe";
-            MessageBox.Show("Update Successful, press OK to Launch!", "StarCraft 2 Custom Campaign Manager", MessageBoxButtons.OK);
+            MessageBox.Show(
+                "Update Successful, press OK to Launch!",
+                "StarCraft 2 Custom Campaign Manager",
+                MessageBoxButtons.OK
+            );
             Process.Start(start);
             Environment.Exit(0);
             //Application.Run(new Form1());

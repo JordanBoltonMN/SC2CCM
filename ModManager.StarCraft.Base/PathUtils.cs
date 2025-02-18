@@ -2,6 +2,7 @@
 using System.IO;
 using Microsoft.Win32;
 using ModManager.StarCraft.Base.Enums;
+using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
 {
@@ -12,10 +13,9 @@ namespace ModManager.StarCraft.Base
             @"SC2CCM\SC2CCM.txt"
         );
 
-        public PathUtils(string pathForStarcraft2)
+        public PathUtils(ITracingService tracingService, string pathForStarcraft2)
         {
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
+            this.TracingService = tracingService;
             this.PathForStarcraft2 = pathForStarcraft2;
             this.PathForCampaign = Path.Combine(pathForStarcraft2, CommonPath.Campaign);
             this.PathForCampaignHotS = Path.Combine(pathForStarcraft2, CommonPath.Campaign_HotS);
@@ -43,47 +43,54 @@ namespace ModManager.StarCraft.Base
             }
         }
 
-        public static bool TryClearDirectory(string directory, Action<string> reportError)
+        public bool TryClearDirectory(string directory)
         {
-            bool isSuccessful = true;
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                this.TracingService.TraceError($"Received a null or whitespace directory name");
+
+                return false;
+            }
+
+            if (!Directory.Exists(directory))
+            {
+                this.TracingService.TraceWarning($"Cannot the directory '{directory}' as it does not exist.");
+
+                return true;
+            }
 
             try
             {
-                foreach (var file in Directory.GetFiles(directory))
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch (IOException)
-                    {
-                        reportError($"ERROR: Could not delete campaign file {Path.GetFileNameWithoutExtension(file)} - please exit the campaign and try again.");
-                        isSuccessful = false;
-                    }
-                }
-            }
-            catch (IOException)
-            {
-                reportError($"ERROR: Did not find directory {directory} to clear.");
-            }
-            
-            //TODO: Fix the evo missions
-            foreach (string subdir in Directory.GetDirectories(directory, "*", SearchOption.TopDirectoryOnly))
-            {
-                if (!(subdir.Contains(@"Campaign\swarm") || subdir.Contains(@"Campaign\void") || subdir.Contains(@"Campaign\nova")))
-                {
-                    Directory.Delete(subdir, true);
-                }
-            }
+                DirectoryInfo directoryInfo = new DirectoryInfo(directory);
 
-            return isSuccessful;
+                foreach (FileInfo fileInfo in directoryInfo.GetFiles())
+                {
+                    fileInfo.Delete();
+                }
+
+                foreach (DirectoryInfo subdirectoryInfo in directoryInfo.GetDirectories())
+                {
+                    subdirectoryInfo.Delete(recursive: true);
+                }
+
+                return true;
+            }
+            catch
+            {
+                this.TracingService.TraceWarning($"Failed to delete directory '{directory}'");
+
+                return false;
+            }
         }
-        
 
         // Looks up the SC2Switcher.exe location in the registry (if it exists), then navigates up two directories.
         public static string PathForStarcraft2Exe()
         {
-            using (RegistryKey registeryKey = Registry.LocalMachine.OpenSubKey(@"Software\Classes\Blizzard.SC2Save\shell\open\command"))
+            using (
+                RegistryKey registeryKey = Registry.LocalMachine.OpenSubKey(
+                    @"Software\Classes\Blizzard.SC2Save\shell\open\command"
+                )
+            )
             {
                 if (!(registeryKey?.GetValue(null) is string pathForSc2SwitcherExe))
                 {
@@ -142,6 +149,8 @@ namespace ModManager.StarCraft.Base
                 ? Path.Combine(PathForStarcraft2, CommonPath.Mods)
                 : Path.Combine(PathForStarcraft2, CommonPath.Mods, partialPath);
         }
+
+        protected ITracingService TracingService { get; }
 
         public string PathForStarcraft2 { get; }
         public string PathForCampaign { get; }

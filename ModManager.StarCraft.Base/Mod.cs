@@ -1,7 +1,7 @@
-﻿using ModManager.StarCraft.Base.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using ModManager.StarCraft.Base.Enums;
 
 namespace ModManager.StarCraft.Base
 {
@@ -14,13 +14,14 @@ namespace ModManager.StarCraft.Base
             Campaign campaign,
             string path,
             string version,
-            string lotVprologue)
+            string lotVprologue
+        )
         {
             this.Title = title;
             this.Author = author;
             this.Description = description;
             this.Campaign = campaign;
-            this.Path = path;
+            this.MetadataFilePath = path;
             this.Version = version;
             this.LotVprologue = lotVprologue;
         }
@@ -43,8 +44,10 @@ namespace ModManager.StarCraft.Base
             // Since Campaign is not a string we have to actually parse it.
             Campaign campaign = Campaign.None;
 
-            if (!metadata.TryGetValue("campaign", out string campaignString)
-                || !Enum.TryParse(campaignString, true, out campaign))
+            if (
+                !metadata.TryGetValue("campaign", out string campaignString)
+                || !Enum.TryParse(campaignString, true, out campaign)
+            )
             {
                 invalidKeys.Add("campaign");
             }
@@ -66,7 +69,7 @@ namespace ModManager.StarCraft.Base
         public string Author { get; }
         public string Description { get; }
         public Campaign Campaign { get; set; }
-        public string Path { get; set; }
+        public string MetadataFilePath { get; set; }
         public string Version { get; }
         public string LotVprologue { get; }
 
@@ -88,7 +91,12 @@ namespace ModManager.StarCraft.Base
                 Campaign = Campaign.LotV;
                 return;
             }
-            if (campaign.Contains("nova") || campaign.Contains("covert") || campaign.Contains("ops") || campaign.Contains("nco"))
+            if (
+                campaign.Contains("nova")
+                || campaign.Contains("covert")
+                || campaign.Contains("ops")
+                || campaign.Contains("nco")
+            )
             {
                 Campaign = Campaign.NCO;
                 return;
@@ -101,7 +109,12 @@ namespace ModManager.StarCraft.Base
             return $"{Title} ({Version})";
         }
 
-        private static string ReadModMetadataField(Dictionary<string, string> metadata, string key, string defaultValue, List<string> absentKeys)
+        private static string ReadModMetadataField(
+            Dictionary<string, string> metadata,
+            string key,
+            string defaultValue,
+            List<string> absentKeys
+        )
         {
             if (!metadata.TryGetValue(key, out string value))
             {

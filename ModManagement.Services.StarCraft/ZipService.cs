@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.Compression;
+using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Services
 {
@@ -35,7 +36,7 @@ namespace ModManager.StarCraft.Services
                                 Path.Combine(sc2BasePath, @"Maps\CustomCampaigns", modFolderName),
                                 /* overwrite */true
                             );
-                            this.TracingService.TraceMessage(
+                            this.TracingService.TraceDebug(
                                 $"Unzipped '{Path.GetFileNameWithoutExtension(modFolderName)}'."
                             );
                         }
@@ -50,7 +51,7 @@ namespace ModManager.StarCraft.Services
                     foreach (string dir in subdirs)
                     {
                         Directory.Move(dir, Path.Combine(sc2BasePath, @"Maps\Campaign\voidprologue"));
-                        this.TracingService.TraceMessage("Moved a lotv prologue thing to the proper place");
+                        this.TracingService.TraceDebug("Moved a lotv prologue thing to the proper place");
                     }
                     try
                     {
@@ -58,9 +59,7 @@ namespace ModManager.StarCraft.Services
                     }
                     catch (IOException)
                     {
-                        this.TracingService.TraceMessage(
-                            $"Could not delete zip file '{file}' - file likely is in use."
-                        );
+                        this.TracingService.TraceDebug($"Could not delete zip file '{file}' - file likely is in use.");
                     }
                 }
 

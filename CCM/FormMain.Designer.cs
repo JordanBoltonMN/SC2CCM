@@ -94,7 +94,6 @@
             // ncoModUserControl
             // 
             this.ncoModUserControl.Location = new System.Drawing.Point(600, 12);
-            this.ncoModUserControl.Mods = null;
             this.ncoModUserControl.Name = "ncoModUserControl";
             this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
             this.ncoModUserControl.TabIndex = 28;
@@ -103,7 +102,6 @@
             // lotvModUserControl
             // 
             this.lotvModUserControl.Location = new System.Drawing.Point(404, 12);
-            this.lotvModUserControl.Mods = null;
             this.lotvModUserControl.Name = "lotvModUserControl";
             this.lotvModUserControl.Size = new System.Drawing.Size(190, 280);
             this.lotvModUserControl.TabIndex = 27;
@@ -111,7 +109,6 @@
             // hotsModUserControl
             // 
             this.hotsModUserControl.Location = new System.Drawing.Point(208, 12);
-            this.hotsModUserControl.Mods = null;
             this.hotsModUserControl.Name = "hotsModUserControl";
             this.hotsModUserControl.Size = new System.Drawing.Size(190, 280);
             this.hotsModUserControl.TabIndex = 26;
@@ -119,7 +116,6 @@
             // wolModUserControl
             // 
             this.wolModUserControl.Location = new System.Drawing.Point(12, 12);
-            this.wolModUserControl.Mods = null;
             this.wolModUserControl.Name = "wolModUserControl";
             this.wolModUserControl.Size = new System.Drawing.Size(190, 280);
             this.wolModUserControl.TabIndex = 25;
