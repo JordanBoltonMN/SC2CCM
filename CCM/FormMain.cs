@@ -944,10 +944,7 @@ namespace Starcraft_Mod_Manager
 
         private void SC2CCM_DragEnter(object sender, DragEventArgs e)
         {
-            bool valid;
-            valid = GetFilename(out string filename, e);
-
-            if (valid)
+            if (this.TryGetFilename(e, out string filename))
             {
                 e.Effect = DragDropEffects.Move;
             }
@@ -965,11 +962,7 @@ namespace Starcraft_Mod_Manager
 
         private void SC2CCM_DragOver(object sender, DragEventArgs e)
         {
-            string filename;
-            bool valid;
-            valid = GetFilename(out filename, e);
-
-            if (valid)
+            if (this.TryGetFilename(e, out string _))
             {
                 e.Effect = DragDropEffects.Move;
             }
@@ -979,7 +972,7 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        protected bool GetFilename(out string filename, DragEventArgs e)
+        protected bool TryGetFilename(DragEventArgs e, out string filename)
         {
             bool ret = false;
             filename = String.Empty;
