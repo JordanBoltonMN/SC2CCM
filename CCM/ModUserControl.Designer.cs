@@ -31,11 +31,11 @@ namespace Starcraft_Mod_Manager
 
             foreach (Mod mod in mods)
             {
-                this.modSelectDropdown.Items.Add(mod.Title);
+                this.modSelectDropdown.Items.Add(mod);
             }
         }
 
-        public void SelectMod(Mod mod)
+        public void SetActiveMod(Mod mod)
         {
             if (mod is null)
             {
@@ -249,7 +249,7 @@ namespace Starcraft_Mod_Manager
             this.groupBox.TabIndex = 1;
             this.groupBox.TabStop = false;
             this.groupBox.Text = "(unknown)";
-            this.groupBox.Enter += new System.EventHandler(this.wolBox_Enter);
+            this.groupBox.Enter += new System.EventHandler(this.groupBox_Enter);
             // 
             // ModUserControl
             // 

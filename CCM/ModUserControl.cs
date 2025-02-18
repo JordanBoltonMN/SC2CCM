@@ -16,17 +16,12 @@ namespace Starcraft_Mod_Manager
 
         public Mod[] Mods { get; set; }
 
-        private void wolDeleteButton_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void ModUserControl_Load(object sender, EventArgs e)
         {
 
         }
 
-        private void wolBox_Enter(object sender, EventArgs e)
+        private void groupBox_Enter(object sender, EventArgs e)
         {
 
         }
@@ -41,7 +36,7 @@ namespace Starcraft_Mod_Manager
             this.setActiveButton.Enabled = true;
             this.deleteButton.Enabled = true;
 
-            this.SelectMod(this.modSelectDropdown.SelectedItem as Mod);
+            this.SetActiveMod(this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] as Mod);
         }
 
         private void deleteButton_Click(object sender, EventArgs e)

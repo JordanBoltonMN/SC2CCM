@@ -61,12 +61,6 @@ namespace Starcraft_Mod_Manager
             {
                 modUserControl.SetAvaialbleMods(mods);
             }
-
-            /*
-            PopulateDropdowns();
-            SetInfoBoxes();
-            logBoxWriteLine("Loaded SC2CCM.");
-            */
         }
 
         private void checkForCampaignUpdates()
@@ -235,25 +229,49 @@ namespace Starcraft_Mod_Manager
                     logBoxWriteLine("FAILED TO LOAD: Unable to find metadata.txt for: " + Path.GetFileName(dir));
                     continue;
                 }
-                if (files.Length >= 2)
+                else if (files.Length >= 2)
                 {
                     logBoxWriteLine("WARNING: Multiple metadata.txt found for: " + dir);
+                    continue;
                 }
-
-                Mod currentMod = new Mod();
-                foreach (string line in File.ReadLines(files[0]))
+                else if (!Mod.TryCreate(files[0], out Mod currentMod))
                 {
-                    processLine(line, currentMod);
-                }
-                currentMod.Path = Path.GetDirectoryName(files[0]);
-
-                if (modsByCampaign.TryGetValue(currentMod.Campaign, out List<Mod> mods))
-                {
-                    mods.Add(currentMod);
+                    logBoxWriteLine("WARNING: failed to create Mod using metadata located for: " + dir);
+                    continue;
                 }
                 else
                 {
-                    modsByCampaign[currentMod.Campaign] = new List<Mod>() { currentMod };
+                    modsByCampaign[currentMod.Campaign].Add(currentMod);
+                }
+            }
+
+            IEnumerable<(ModUserControl modUserControl, string commonPath)> modUserControlsAndCommonPaths =
+                new (ModUserControl, string)[]
+                {
+                    (wolModUserControl, CommonPath.Campaign),
+                    (hotsModUserControl, CommonPath.Campaign_HotS),
+                    (lotvModUserControl, CommonPath.Campaign_LotV),
+                    (ncoModUserControl, CommonPath.Campaign_Nco),
+                };
+
+            foreach ((ModUserControl modUserControl, string commonPath) in modUserControlsAndCommonPaths)
+            {
+                string metadataPath = pathUtils.PathForMetadata(commonPath);
+
+                if (Mod.TryCreate(metadataPath, out Mod activeMod))
+                {
+                    activeMod.Path = metadataPath;
+
+                    if (!modsByCampaign[activeMod.Campaign].Contains(activeMod))
+                    {
+                        modsByCampaign[activeMod.Campaign].Add(activeMod);
+                    }
+
+                    modUserControl.SetActiveMod(activeMod);
+                }
+                else
+                {
+                    modUserControl.SetActiveMod(null);
                 }
             }
 
@@ -275,97 +293,7 @@ namespace Starcraft_Mod_Manager
             if (dialogResult == DialogResult.Yes)
             {
                 ModUserControl modUserControl = GetModUserControlFor(mod.Campaign);
-                modUserControl.SelectMod(mod);
-            }
-        }
-
-        /* Sets the display boxes (Title, Author, Version) for the active mod.
-         * Sets to a default if no metadata.txt is found. 
-         */
-        public void SetInfoBoxes()
-        {
-            string wolMetadataPath = pathUtils.PathForMetadata(CommonPath.Campaign);
-            if (File.Exists(wolMetadataPath))
-            {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(wolMetadataPath))
-                {
-                    processLine(line, activeMod);
-                }
-                // TODO
-                //wolTitleBox.Text = activeMod.Title;
-                //wolAuthorBox.Text = activeMod.Author;
-                //wolVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                // TODO
-                //wolTitleBox.Text = "Default Campaign";
-                //wolAuthorBox.Text = "Blizzard";
-                //wolVersionBox.Text = "N/A";
-            }
-
-            string hotsMetadataPath = pathUtils.PathForMetadata(CommonPath.Campaign_HotS);
-            if (File.Exists(hotsMetadataPath))
-            {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(hotsMetadataPath))
-                {
-                    processLine(line, activeMod);
-                }
-                // TODO
-                //hotsTitleBox.Text = activeMod.Title;
-                //hotsAuthorBox.Text = activeMod.Author;
-                //hotsVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                // TODO
-                //hotsTitleBox.Text = "Default Campaign";
-                //hotsAuthorBox.Text = "Blizzard";
-                //hotsVersionBox.Text = "N/A";
-            }
-
-            string lotvMetadataPath = pathUtils.PathForMetadata(CommonPath.Campaign_LotV);
-            if (File.Exists(lotvMetadataPath))
-            {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(lotvMetadataPath))
-                {
-                    processLine(line, activeMod);
-                }
-                // TODO
-                //lotvTitleBox.Text = activeMod.Title;
-                //lotvAuthorBox.Text = activeMod.Author;
-                //lotvVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                // TODO
-                //lotvTitleBox.Text = "Default Campaign";
-                //lotvAuthorBox.Text = "Blizzard";
-                //lotvVersionBox.Text = "N/A";
-            }
-
-            string ncoMetadataPath = pathUtils.PathForMetadata(CommonPath.Campaign_Nco);
-            if (File.Exists(ncoMetadataPath))
-            {
-                Mod activeMod = new Mod();
-                foreach (string line in File.ReadLines(ncoMetadataPath))
-                {
-                    processLine(line, activeMod);
-                }
-                // TODO
-                //ncoTitleBox.Text = activeMod.Title;
-                //ncoAuthorBox.Text = activeMod.Author;
-                //ncoVersionBox.Text = activeMod.Version;
-            }
-            else
-            {
-                // TODO
-                //ncoTitleBox.Text = "Default Campaign";
-                //ncoAuthorBox.Text = "Blizzard";
-                //ncoVersionBox.Text = "N/A";
+                modUserControl.SetActiveMod(mod);
             }
         }
 
@@ -400,7 +328,8 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        /* Handles a line pulled from metadata.txt and stores it in the mod object. */
+        /*
+        
         private void processLine(string line, Mod mod)
         {
             String[] lineParts = line.Split(new[] { '=' }, 2);
@@ -411,6 +340,7 @@ namespace Starcraft_Mod_Manager
             if (lineParts[0].ToLower() == "author") mod.Author = lineParts[1];
             //if (lineParts[0].ToLower() == "lotvprologue") mod.SetPrologue(lineParts[1]);
         }
+        */
 
         private void logBoxWriteLine(string message)
         {
