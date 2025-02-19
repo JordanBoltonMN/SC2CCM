@@ -98,7 +98,6 @@
             this.progressBar.Size = new System.Drawing.Size(778, 23);
             this.progressBar.TabIndex = 29;
             this.progressBar.Visible = false;
-            this.progressBar.Click += new System.EventHandler(this.progressBar1_Click);
             // 
             // ncoModUserControl
             // 
