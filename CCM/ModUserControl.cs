@@ -37,6 +37,8 @@ namespace Starcraft_Mod_Manager
         public PathUtils PathUtils { get; private set; }
         public Campaign Campaign { get; private set; }
 
+        private Mod ActiveMod { get; set; }
+
         // Event handlers
 
         private void modSelectDropdown_SelectedIndexChanged(object sender, EventArgs e)
@@ -47,7 +49,14 @@ namespace Starcraft_Mod_Manager
 
         private void setActiveButton_Click(object sender, EventArgs e)
         {
-            this.ActivateSelectedMod();
+            Mod selectedMod = this.GetSelectedMod();
+
+            if (selectedMod is null)
+            {
+                return;
+            }
+
+            this.SetActiveMod(selectedMod, shouldCopyModFiles: true);
         }
 
         private void deleteButton_Click(object sender, EventArgs e)
@@ -57,16 +66,19 @@ namespace Starcraft_Mod_Manager
 
         private void restoreButton_Click(object sender, EventArgs e)
         {
-            this.TryClearCampaignDirectory();
+            this.ClearCampaignDirectory();
+            this.RefreshActiveModText();
         }
 
         // Public
 
+        // Sorts by title (asc) then version (desc).
         public void SetAvaialbleMods(IEnumerable<Mod> mods)
         {
             this.modSelectDropdown.Items.Clear();
 
-            IEnumerable<Mod> sortedMods = mods.OrderBy(mod => mod.Title).ThenByDescending(mod => mod.Version);
+            IEnumerable<Mod> sortedMods = mods.OrderBy(mod => mod.Metadata.Title)
+                .ThenByDescending(mod => mod.Metadata.Version);
 
             foreach (Mod mod in sortedMods)
             {
@@ -74,156 +86,107 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        public void SetActiveMod(Mod mod)
+        // Sets the mod selected under the dropdown.
+        // Passing null acts as an unselect.
+        public void SelectMod(Mod mod)
+        {
+            this.modSelectDropdown.SelectedIndex = mod != null ? this.modSelectDropdown.Items.IndexOf(mod) : -1;
+            this.RefreshActiveModText(mod);
+        }
+
+        // Sets the mod as active by copying files to StarCraft's directories.
+        public void SetActiveMod(Mod mod, bool shouldCopyModFiles)
+        {
+            this.SelectMod(mod);
+            this.ActiveMod = mod;
+
+            if (shouldCopyModFiles)
+            {
+                this.CopyModFiles(mod);
+            }
+        }
+
+        // Private
+
+        // Simple fetcher for the mod selected under the Dropdown.
+        private Mod GetSelectedMod()
+        {
+            if (this.modSelectDropdown.SelectedIndex == -1)
+            {
+                return null;
+            }
+            else if (this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] is Mod mod)
+            {
+                return mod;
+            }
+            else
+            {
+                throw new Exception(
+                    $"Failed to get selected mod at selectedIndex '{this.modSelectDropdown.SelectedIndex}'"
+                );
+            }
+        }
+
+        private void CopyModFiles(Mod mod)
+        {
+            this.ClearCampaignDirectory();
+
+            PathUtils.CopyFilesAndFolders(
+                Path.GetDirectoryName(mod.MetadataFilePath),
+                this.PathUtils.PathForCampaign(this.Campaign)
+            );
+        }
+
+        private void RefreshActiveModText(Mod mod)
         {
             if (mod is null)
             {
-                this.titleBox.Text = "Default Campaign";
-                this.authorBox.Text = "Blizzard";
-                this.versionBox.Text = "N/A";
+                this.RefreshActiveModText();
             }
             else
             {
-                this.titleBox.Text = mod.Title;
-                this.authorBox.Text = mod.Author;
-                this.versionBox.Text = mod.Version;
+                this.titleBox.Text = mod.Metadata.Title;
+                this.authorBox.Text = mod.Metadata.Author;
+                this.versionBox.Text = mod.Metadata.Version;
             }
         }
 
-        // Protected
-
-        protected void ActivateSelectedMod()
+        private void RefreshActiveModText()
         {
-            if (
-                !this.TryClearCampaignDirectory()
-                || !this.TryGetSelectedMod(out Mod selectedMod)
-                || !this.TryGetCampaignDirectory(out string campaignPath)
-            )
-            {
-                return;
-            }
-
-            PathUtils.CopyFilesAndFolders(Path.GetDirectoryName(selectedMod.MetadataFilePath), campaignPath);
-            this.SetActiveMod(selectedMod);
+            this.titleBox.Text = "Default Campaign";
+            this.authorBox.Text = "Blizzard";
+            this.versionBox.Text = "N/A";
         }
 
-        protected void DeleteSelectedMod()
+        private void DeleteSelectedMod()
         {
-            if (!this.TryGetSelectedMod(out Mod selectedMod))
+            Mod selectedMod = this.GetSelectedMod();
+
+            if (!Prompter.AskYesNo($"Are you sure you want to delete '{selectedMod}'?"))
             {
                 return;
             }
 
-            bool shouldDeleteMod = Prompter.AskYesNo($"Are you sure you want to delete '{selectedMod}'?");
-
-            if (!shouldDeleteMod)
+            if (selectedMod.Equals(this.ActiveMod))
             {
-                return;
+                this.ClearCampaignDirectory();
+                this.ActiveMod = null;
             }
 
-            DirectoryInfo modDirectoryInfo = new DirectoryInfo(selectedMod.MetadataFilePath);
-
-            while (
-                modDirectoryInfo != null
-                && !modDirectoryInfo.Name.Equals("CustomCampaigns", StringComparison.OrdinalIgnoreCase)
-            )
-            {
-                modDirectoryInfo = modDirectoryInfo.Parent;
-            }
-
-            if (modDirectoryInfo is null)
-            {
-                this.TracingService.TraceWarning(
-                    $"Failed to find CustomCampaigns in the path '{selectedMod.MetadataFilePath}'."
-                );
-
-                return;
-            }
-
-            if (!this.PathUtils.TryClearDirectory(Path.GetDirectoryName(selectedMod.MetadataFilePath)))
-            {
-                this.TracingService.TraceWarning($"Could not delete '{selectedMod}'. A file may be open somewhere.");
-
-                return;
-            }
+            this.PathUtils.ClearDirectory(
+                PathUtils.GetImmediateSubdirectory(selectedMod.MetadataFilePath, PathUtils.PathForCustomCampaigns)
+            );
 
             this.modSelectDropdown.Items.Remove(selectedMod);
-            this.SetActiveMod(mod: null);
-        }
-
-        public bool TryClearCampaignDirectory()
-        {
-            this.TracingService.TraceDebug($"Attempting to clear campaign directory for '{this.Campaign}'.");
-
-            if (
-                this.TryGetCampaignDirectory(out string campaignDirectory)
-                && this.PathUtils.TryClearDirectory(campaignDirectory)
-            )
-            {
-                this.SetActiveMod(null);
-                this.TracingService.TraceDebug($"Cleared campaign directory for '{this.Campaign}'.");
-
-                return true;
-            }
-            else
-            {
-                this.TracingService.TraceWarning(
-                    $"Failed to clean campaign directory for '{this.Campaign}'. SC2 files are likely in use."
-                );
-
-                return false;
-            }
+            this.SelectMod(mod: this.ActiveMod);
         }
 
         // Helpers
 
-        protected bool TryGetSelectedMod(out Mod mod)
+        private void ClearCampaignDirectory()
         {
-            mod = null;
-
-            if (this.modSelectDropdown.SelectedIndex == -1)
-            {
-                return false;
-            }
-
-            mod = this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] as Mod;
-
-            if (mod is null)
-            {
-                this.TracingService.TraceWarning("Failed to get selected mod.");
-
-                return false;
-            }
-
-            return true;
-        }
-
-        protected bool TryGetCampaignDirectory(out string campaignPath)
-        {
-            switch (this.Campaign)
-            {
-                case Campaign.WoL:
-                    campaignPath = this.PathUtils.PathForCampaign;
-                    return true;
-
-                case Campaign.HotS:
-                    campaignPath = this.PathUtils.PathForCampaignHotS;
-                    return true;
-
-                case Campaign.LotV:
-                    campaignPath = this.PathUtils.PathForCampaignLotV;
-                    return true;
-
-                case Campaign.NCO:
-                    campaignPath = this.PathUtils.PathForCampaignNco;
-                    return true;
-
-                default:
-                    this.TracingService.TraceError($"Unknown Campaign '{this.Campaign}'.");
-
-                    campaignPath = null;
-                    return false;
-            }
+            this.TracingService.TraceDebug($"Attempting to clear campaign directory for '{this.Campaign}'.");
+            this.PathUtils.ClearCampaign(this.Campaign);
         }
     }
 }

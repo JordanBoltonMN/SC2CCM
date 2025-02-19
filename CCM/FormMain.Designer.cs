@@ -84,8 +84,6 @@
             this.logBox.Size = new System.Drawing.Size(256, 56);
             this.logBox.TabIndex = 22;
             this.logBox.Text = "";
-            this.logBox.TextChanged += new System.EventHandler(this.logBox_TextChanged);
-            this.logBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.logBox_KeyDown);
             // 
             // selectFolderDialogue
             // 
@@ -97,7 +95,6 @@
             this.ncoModUserControl.Name = "ncoModUserControl";
             this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
             this.ncoModUserControl.TabIndex = 28;
-            this.ncoModUserControl.Load += new System.EventHandler(this.ncoModUserControl_Load);
             // 
             // lotvModUserControl
             // 

@@ -2,7 +2,7 @@
 {
     public class CommonPath
     {
-        public const string Campaign = @"Maps\Campaign";
+        public const string Campaign_WoL = @"Maps\Campaign";
         public const string Campaign_HotS = @"Maps\Campaign\swarm";
         public const string Campaign_Evolution = @"Maps\Campaign\swarm\evolution";
         public const string Campaign_LotV = @"Maps\Campaign\void";

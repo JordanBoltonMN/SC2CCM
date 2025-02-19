@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Services;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace Starcraft_Mod_Manager
@@ -21,10 +21,7 @@ namespace Starcraft_Mod_Manager
             Campaign.NCO,
         };
 
-        Dictionary<Campaign, Mod[]> modsByCampaign = new Dictionary<Campaign, Mod[]>();
-
-        ZipService zipService;
-        string importMod;
+        Dictionary<Campaign, List<Mod>> modsByCampaign = new Dictionary<Campaign, List<Mod>>();
 
         public FormMain(ITracingService tracingService)
         {
@@ -39,19 +36,20 @@ namespace Starcraft_Mod_Manager
                 Path.GetDirectoryName(GetOrDerivePathForStarcraft2Exe())
             );
 
-            zipService = new ZipService(this.TracingService);
+            this.ZipUtils = new ZipUtils(this.TracingService);
         }
 
         private ITracingService TracingService { get; }
-
         private PathUtils PathUtils { get; }
+        private ZipUtils ZipUtils { get; }
+
+        private IEnumerable<ModUserControl> ModUserControls =>
+            CampaignsWithModUserControl.Select(campaign => this.GetModUserControlFor(campaign));
 
         private void SC2MM_Load(object sender, EventArgs e)
         {
             copyUpdater();
-
             this.PathUtils.VerifyDirectories();
-            zipService.unzipZips(this.PathUtils.PathForStarcraft2);
             handleDependencies();
         }
 
@@ -62,11 +60,34 @@ namespace Starcraft_Mod_Manager
                 modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
             }
 
-            this.modsByCampaign = GetKnownMods();
+            this.modsByCampaign = GetCustomMods();
+            this.RefreshAvailableModsForModUserControls();
 
-            foreach ((ModUserControl modUserControl, IEnumerable<Mod> mods) in this.GetAllControlAndMods())
+            foreach (ModUserControl modUserControl in this.ModUserControls)
             {
-                modUserControl.SetAvaialbleMods(mods);
+                if (
+                    !this.PathUtils.TryFindFileRecursively(
+                        this.PathUtils.PathForCampaign(modUserControl.Campaign),
+                        "metadata.txt",
+                        directoryName => !this.PathUtils.CampaignDirectories.Contains(directoryName),
+                        out string metadataFilePath
+                    )
+                )
+                {
+                    this.TracingService.TraceDebug(
+                        $"No 'metadata.txt' found for campaign '{modUserControl.Campaign}'."
+                    );
+
+                    modUserControl.SelectMod(null);
+                }
+                else if (Mod.TryCreate(this.TracingService, metadataFilePath, out Mod activeMod))
+                {
+                    modUserControl.SetActiveMod(activeMod, shouldCopyModFiles: false);
+                }
+                else
+                {
+                    modUserControl.SelectMod(null);
+                }
             }
         }
 
@@ -159,7 +180,7 @@ namespace Starcraft_Mod_Manager
         public void handleDependencies()
         {
             string[] files = Directory.GetFiles(
-                this.PathUtils.PathForCustomCampaign(null),
+                this.PathUtils.PathForCustomCampaigns,
                 "*.SC2Mod",
                 SearchOption.AllDirectories
             );
@@ -204,7 +225,7 @@ namespace Starcraft_Mod_Manager
 
             foreach (
                 string dirPath in Directory.GetDirectories(
-                    this.PathUtils.PathForCustomCampaign(null),
+                    this.PathUtils.PathForCustomCampaigns,
                     "*.SC2Mod",
                     SearchOption.AllDirectories
                 )
@@ -239,10 +260,7 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        /* Builds the modLists array  based on the folders that exist in the customcampaigns folder.
-         * If a mod does not have a campaign specified in the metadata file, it is assigned to None.
-         */
-        public Dictionary<Campaign, Mod[]> GetKnownMods()
+        public Dictionary<Campaign, List<Mod>> GetCustomMods()
         {
             Dictionary<Campaign, List<Mod>> modsByCampaign = CampaignsWithModUserControl.ToDictionary(
                 campaign => campaign,
@@ -252,7 +270,7 @@ namespace Starcraft_Mod_Manager
             // Search in each directory
             foreach (
                 string dir in Directory.GetDirectories(
-                    this.PathUtils.PathForCustomCampaign(null),
+                    this.PathUtils.PathForCustomCampaigns,
                     "*",
                     SearchOption.TopDirectoryOnly
                 )
@@ -272,7 +290,7 @@ namespace Starcraft_Mod_Manager
 
                     continue;
                 }
-                else if (!Mod.TryCreate(files[0], out Mod currentMod))
+                else if (!Mod.TryCreate(this.TracingService, files[0], out Mod currentMod))
                 {
                     this.TracingService.TraceWarning($"Multiple metadata.txt found for '{dir}'.");
 
@@ -280,52 +298,19 @@ namespace Starcraft_Mod_Manager
                 }
                 else
                 {
-                    modsByCampaign[currentMod.Campaign].Add(currentMod);
+                    modsByCampaign[currentMod.Metadata.Campaign].Add(currentMod);
                 }
             }
 
-            IEnumerable<(ModUserControl modUserControl, string commonPath)> modUserControlsAndCommonPaths = new (
-                ModUserControl,
-                string
-            )[]
-            {
-                (wolModUserControl, CommonPath.Campaign),
-                (hotsModUserControl, CommonPath.Campaign_HotS),
-                (lotvModUserControl, CommonPath.Campaign_LotV),
-                (ncoModUserControl, CommonPath.Campaign_Nco),
-            };
-
-            foreach ((ModUserControl modUserControl, string commonPath) in modUserControlsAndCommonPaths)
-            {
-                string metadataPath = this.PathUtils.PathForMetadata(commonPath);
-
-                if (Mod.TryCreate(metadataPath, out Mod activeMod))
-                {
-                    activeMod.MetadataFilePath = metadataPath;
-                    modUserControl.SetActiveMod(activeMod);
-                }
-                else
-                {
-                    modUserControl.SetActiveMod(null);
-                }
-            }
-
-            return modsByCampaign.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
+            return modsByCampaign;
         }
 
-        /* Asks if the user wants to set the single newly imported mod to active.  */
-        public void PromptNewMod(Mod mod)
+        private void PromptToActivateMod(Mod mod)
         {
-            DialogResult dialogResult = MessageBox.Show(
-                $"Import of {mod.Title} successful, would you like to make it the active campaign?",
-                "StarCraft II Custom Campaign Manager",
-                MessageBoxButtons.YesNo
-            );
-
-            if (dialogResult == DialogResult.Yes)
+            if (Prompter.AskYesNo($"Import of {mod} successful, would you like to make it the active campaign?"))
             {
-                ModUserControl modUserControl = GetModUserControlFor(mod.Campaign);
-                modUserControl.SetActiveMod(mod);
+                ModUserControl modUserControl = GetModUserControlFor(mod);
+                modUserControl.SetActiveMod(mod, shouldCopyModFiles: true);
             }
         }
 
@@ -342,6 +327,11 @@ namespace Starcraft_Mod_Manager
         private (ModUserControl modUserControl, IEnumerable<Mod> mods) GetControlAndModsFor(Campaign campaign)
         {
             return (this.GetModUserControlFor(campaign), modsByCampaign[campaign]);
+        }
+
+        private ModUserControl GetModUserControlFor(Mod mod)
+        {
+            return this.GetModUserControlFor(mod.Metadata.Campaign);
         }
 
         private ModUserControl GetModUserControlFor(Campaign campaign)
@@ -365,503 +355,14 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        /*
-        
-        private void processLine(string line, Mod mod)
-        {
-            String[] lineParts = line.Split(new[] { '=' }, 2);
-            if (lineParts[0].ToLower() == "title") mod.Title = lineParts[1];
-            if (lineParts[0].ToLower() == "desc") mod.Description = lineParts[1];
-            if (lineParts[0].ToLower() == "campaign") mod.SetCampaign(lineParts[1]);
-            if (lineParts[0].ToLower() == "version") mod.Version = lineParts[1];
-            if (lineParts[0].ToLower() == "author") mod.Author = lineParts[1];
-            //if (lineParts[0].ToLower() == "lotvprologue") mod.SetPrologue(lineParts[1]);
-        }
-        */
-
-        private void displayBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            e.SuppressKeyPress = true;
-        }
-
-        ///*
-        // * I've opted to keep all of these as separate functions instead of passing them into a larger "handleSetButton" function.
-        // * Because the directory structure is a little wonky, I'd probably have to pass in the directory and some string helpers as well.
-        // * To avoid this, I'd probably have to make a whole set of extra helper functions and change some of my setup, which I don't have time to do.
-        // * It is probably easier to maintain as one larger function, but I'm not at the point where I can really do that.
-        // */
-        //private void wolSetButton_Click(object sender, EventArgs e)
-        //{
-
-        //        }
-
-        //        private void wolDeleteButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //Mod selectedMod = modLists[1][wolSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            //if (dialogResult == DialogResult.Yes)
-        //            //{
-        //            //    while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //            //    {
-        //            //        modPath = Path.GetDirectoryName(modPath);
-        //            //    }
-        //            //    if (clearDir(modPath))
-        //            //    {
-        //            //        Directory.Delete(modPath);
-        //            //        populateModLists();
-        //            //        PopulateDropdowns(Campaign.WoL);
-        //            //        SetInfoBoxes();
-        //            //        logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //            //    }
-        //            //    else
-        //            //    {
-        //            //        logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //            //    }
-        //            //}
-        //=======
-        //            Mod selectedMod = modLists[1][wolSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            if (dialogResult == DialogResult.Yes)
-        //            {
-        //                while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //                {
-        //                    modPath = Path.GetDirectoryName(modPath);
-        //                }
-        //                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
-        //                {
-        //                    Directory.Delete(modPath);
-        //                    populateModLists();
-        //                    populateDropdowns((int)Campaign.WoL);
-        //                    setInfoBoxes();
-        //                    logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //                }
-        //                else
-        //                {
-        //                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //                }
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void wolRestoreButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //logBoxWriteLine("Resetting Wings Campaign to default.");
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign"))
-        //            //{
-        //            //    logBoxWriteLine("Clear successful!");
-        //            //    SetInfoBoxes();
-        //            //    hideWarningImg(wolWarningImg);
-        //            //} else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Wings campaign - SC2 files in use.");
-        //            //    showWarningImg(wolWarningImg);
-        //            //}
-        //=======
-        //            logBoxWriteLine("Resetting Wings Campaign to default.");
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaign, logBoxWriteLine))
-        //            {
-        //                logBoxWriteLine("Clear successful!");
-        //                setInfoBoxes();
-        //                hideWarningImg(wolWarningImg);
-        //            } else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Wings campaign - SC2 files in use.");
-        //                showWarningImg(wolWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-
-        //        private void hotsSetButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //if (hotsSelectBox.SelectedIndex < 0) return;
-        //            //Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign\swarm"))
-        //            //{
-        //            //    copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign\swarm");
-        //            //    SetInfoBoxes();
-        //            //    logBoxWriteLine("Set Swarm Campaign to " + selectedMod.Title + "!");
-        //            //    hideWarningImg(hotsWarningImg);
-        //            //}
-        //            //else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Swarm campaign - SC2 files in use.");
-        //            //    showWarningImg(hotsWarningImg);
-        //            //}
-        //=======
-        //            if (hotsSelectBox.SelectedIndex < 0) return;
-        //            Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignHotS, logBoxWriteLine))
-        //            {
-        //                PathUtils.CopyFilesAndFolders(modPath, this.PathUtils.PathForCampaignHotS);
-        //                setInfoBoxes();
-        //                logBoxWriteLine("Set Swarm Campaign to " + selectedMod.Title + "!");
-        //                hideWarningImg(hotsWarningImg);
-        //            }
-        //            else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Swarm campaign - SC2 files in use.");
-        //                showWarningImg(hotsWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void hotsDeleteButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            //if (dialogResult == DialogResult.Yes)
-        //            //{
-        //            //    while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //            //    {
-        //            //        modPath = Path.GetDirectoryName(modPath);
-        //            //    }
-        //            //    if (clearDir(modPath))
-        //            //    {
-        //            //        Directory.Delete(modPath);
-        //            //        populateModLists();
-        //            //        PopulateDropdowns(Campaign.HotS);
-        //            //        SetInfoBoxes();
-        //            //        logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //            //    }
-        //            //    else
-        //            //    {
-        //            //        logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //            //    }
-        //            //}
-        //=======
-        //            Mod selectedMod = modLists[2][hotsSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            if (dialogResult == DialogResult.Yes)
-        //            {
-        //                while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //                {
-        //                    modPath = Path.GetDirectoryName(modPath);
-        //                }
-        //                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
-        //                {
-        //                    Directory.Delete(modPath);
-        //                    populateModLists();
-        //                    populateDropdowns((int)Campaign.HotS);
-        //                    setInfoBoxes();
-        //                    logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //                }
-        //                else
-        //                {
-        //                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //                }
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void hotsRestoreButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            //logBoxWriteLine("Resetting Swarm Campaign to default.");
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign\swarm") && clearDir(sc2BasePath + @"\Maps\Campaign\swarm\evolution"))
-        //            //{
-        //            //    logBoxWriteLine("Clear complete!");
-        //            //    SetInfoBoxes();
-        //            //    hideWarningImg(hotsWarningImg);
-        //            //}
-        //            //else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Swarm campaign - SC2 files in use.");
-        //            //    showWarningImg(hotsWarningImg);
-        //            //}
-        //=======
-        //            logBoxWriteLine("Resetting Swarm Campaign to default.");
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignHotS, logBoxWriteLine)
-        //                && PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignHotSEvolution, logBoxWriteLine))
-        //            {
-        //                logBoxWriteLine("Clear complete!");
-        //                setInfoBoxes();
-        //                hideWarningImg(hotsWarningImg);
-        //            }
-        //            else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Swarm campaign - SC2 files in use.");
-        //                showWarningImg(hotsWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void lotvSetButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //if (lotvSelectBox.SelectedIndex < 0) return;
-        //            //Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign\void"))
-        //            //{
-        //            //    copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign\void");
-        //            //    SetInfoBoxes();
-        //            //    logBoxWriteLine("Set Void Campaign to " + selectedMod.Title + "!");
-        //            //    hideWarningImg(lotvWarningImg);
-        //            //}
-        //            //else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Void campaign - SC2 files in use.");
-        //            //    showWarningImg(lotvWarningImg);
-        //            //}
-        //=======
-        //            if (lotvSelectBox.SelectedIndex < 0) return;
-        //            Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignLotV, logBoxWriteLine))
-        //            {
-        //                PathUtils.CopyFilesAndFolders(modPath, this.PathUtils.PathForCampaignLotV);
-        //                setInfoBoxes();
-        //                logBoxWriteLine("Set Void Campaign to " + selectedMod.Title + "!");
-        //                hideWarningImg(lotvWarningImg);
-        //            }
-        //            else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Void campaign - SC2 files in use.");
-        //                showWarningImg(lotvWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void lotvDeleteButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            //if (dialogResult == DialogResult.Yes)
-        //            //{
-        //            //    while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //            //    {
-        //            //        modPath = Path.GetDirectoryName(modPath);
-        //            //    }
-        //            //    if (clearDir(modPath))
-        //            //    {
-        //            //        Directory.Delete(modPath);
-        //            //        populateModLists();
-        //            //        PopulateDropdowns(Campaign.LotV);
-        //            //        SetInfoBoxes();
-        //            //        logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //            //    }
-        //            //    else
-        //            //    {
-        //            //        logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //            //    }
-        //            //}
-        //=======
-        //            Mod selectedMod = modLists[3][lotvSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            if (dialogResult == DialogResult.Yes)
-        //            {
-        //                while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //                {
-        //                    modPath = Path.GetDirectoryName(modPath);
-        //                }
-        //                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
-        //                {
-        //                    Directory.Delete(modPath);
-        //                    populateModLists();
-        //                    populateDropdowns((int)Campaign.LotV);
-        //                    setInfoBoxes();
-        //                    logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //                }
-        //                else
-        //                {
-        //                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //                }
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void lotvRestoreButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //logBoxWriteLine("Resetting Void Campaign to default.");
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign\void"))
-        //            //{
-        //            //    logBoxWriteLine("Clear complete!");
-        //            //    SetInfoBoxes();
-        //            //    hideWarningImg(lotvWarningImg);
-        //            //}
-        //            //else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Void campaign - SC2 files in use.");
-        //            //    showWarningImg(lotvWarningImg);
-        //            //}
-        //=======
-        //            logBoxWriteLine("Resetting Void Campaign to default.");
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignLotV, logBoxWriteLine))
-        //            {
-        //                logBoxWriteLine("Clear complete!");
-        //                setInfoBoxes();
-        //                hideWarningImg(lotvWarningImg);
-        //            }
-        //            else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Void campaign - SC2 files in use.");
-        //                showWarningImg(lotvWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void ncoSetButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //if (ncoSelectBox.SelectedIndex < 0) return;
-        //            //Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign\nova"))
-        //            //{
-        //            //    copyFilesAndFolders(modPath, sc2BasePath + @"\Maps\Campaign\nova");
-        //            //    SetInfoBoxes();
-        //            //    logBoxWriteLine("Set Nova Campaign to " + selectedMod.Title + "!");
-        //            //    hideWarningImg(ncoWarningImg);
-        //            //}
-        //            //else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Nova campaign - SC2 files in use.");
-        //            //    showWarningImg(ncoWarningImg);
-        //            //}
-        //=======
-        //            if (ncoSelectBox.SelectedIndex < 0) return;
-        //            Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignNco, logBoxWriteLine))
-        //            {
-        //                PathUtils.CopyFilesAndFolders(modPath, this.PathUtils.PathForCampaignNco);
-        //                setInfoBoxes();
-        //                logBoxWriteLine("Set Nova Campaign to " + selectedMod.Title + "!");
-        //                hideWarningImg(ncoWarningImg);
-        //            }
-        //            else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Nova campaign - SC2 files in use.");
-        //                showWarningImg(ncoWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void ncoDeleteButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
-        //            //string modPath = selectedMod.Path;
-        //            //DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            //if (dialogResult == DialogResult.Yes)
-        //            //{
-        //            //    while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //            //    {
-        //            //        modPath = Path.GetDirectoryName(modPath);
-        //            //    }
-        //            //    if (clearDir(modPath))
-        //            //    {
-        //            //        Directory.Delete(modPath);
-        //            //        populateModLists();
-        //            //        PopulateDropdowns(Campaign.NCO);
-        //            //        SetInfoBoxes();
-        //            //        logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //            //    }
-        //            //    else
-        //            //    {
-        //            //        logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //            //    }
-        //            //}
-        //=======
-        //            Mod selectedMod = modLists[4][ncoSelectBox.SelectedIndex];
-        //            string modPath = selectedMod.Path;
-        //            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete " + selectedMod.Title + "?", "StarCraft II Custom Campaign Manager", MessageBoxButtons.YesNo);
-        //            if (dialogResult == DialogResult.Yes)
-        //            {
-        //                while (!Path.GetDirectoryName(modPath).EndsWith("CustomCampaigns"))
-        //                {
-        //                    modPath = Path.GetDirectoryName(modPath);
-        //                }
-        //                if (PathUtils.TryClearDirectory(modPath, logBoxWriteLine))
-        //                {
-        //                    Directory.Delete(modPath);
-        //                    populateModLists();
-        //                    populateDropdowns((int)Campaign.NCO);
-        //                    setInfoBoxes();
-        //                    logBoxWriteLine("Deleted " + selectedMod.Title + " from local storage.");
-        //                }
-        //                else
-        //                {
-        //                    logBoxWriteLine("ERROR: Could not delete " + selectedMod.Title + " - a file may be open somewhere.");
-        //                }
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        //        private void ncoRestoreButton_Click(object sender, EventArgs e)
-        //        {
-        //<<<<<<< HEAD
-        //            // TODO
-        //            //logBoxWriteLine("Resetting Nova Campaign to default.");
-        //            //if (clearDir(sc2BasePath + @"\Maps\Campaign\nova"))
-        //            //{
-        //            //    logBoxWriteLine("Clear complete!");
-        //            //    SetInfoBoxes();
-        //            //    hideWarningImg(ncoWarningImg);
-        //            //}
-        //            //else
-        //            //{
-        //            //    logBoxWriteLine("ERROR: Could not set Nova campaign - SC2 files in use.");
-        //            //    showWarningImg(ncoWarningImg);
-        //            //}
-        //=======
-        //            logBoxWriteLine("Resetting Nova Campaign to default.");
-        //            if (PathUtils.TryClearDirectory(this.PathUtils.PathForCampaignNco, logBoxWriteLine))
-        //            {
-        //                logBoxWriteLine("Clear complete!");
-        //                setInfoBoxes();
-        //                hideWarningImg(ncoWarningImg);
-        //            }
-        //            else
-        //            {
-        //                logBoxWriteLine("ERROR: Could not set Nova campaign - SC2 files in use.");
-        //                showWarningImg(ncoWarningImg);
-        //            }
-        //>>>>>>> pathUtils
-        //        }
-
-        private void infoButton_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(
-                "To Install a Custom Campaign:\n"
-                    + "1. Drag and drop the mod .zip file onto the Custom Campaign Manager\n"
-                    + "2. Select the custom campaign from the dropdown list and hit \"Set to Active Campaign\"",
-                "Starcraft II Custom Campaign Manager"
-            );
-        }
-
         private void importButton_Click(object sender, EventArgs e)
         {
             string[] targetFilePaths;
             selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
             if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
             {
-                targetFilePaths = selectFolderDialogue.FileNames.ToArray<String>();
-                importFiles(targetFilePaths);
+                targetFilePaths = selectFolderDialogue.FileNames.ToArray<string>();
+                this.UnzipToCustomCampaigns(targetFilePaths);
             }
         }
 
@@ -873,58 +374,80 @@ namespace Starcraft_Mod_Manager
 
         private void SC2CCM_DragDrop(object sender, DragEventArgs e)
         {
-            string[] filePaths = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            importFiles(filePaths);
+            List<string> zipFilePaths = new List<string>();
+
+            foreach (string filePath in (string[])e.Data.GetData(DataFormats.FileDrop, autoConvert: false))
+            {
+                if (!filePath.ToLower().EndsWith(".zip"))
+                {
+                    this.TracingService.TraceWarning($"Cannot process non-zip file '{filePath}'.");
+                    continue;
+                }
+
+                zipFilePaths.Add(filePath);
+            }
+
+            UnzipToCustomCampaigns(zipFilePaths);
         }
 
-        private void importFiles(string[] filePaths)
+        private void RefreshAvailableModsForModUserControls()
         {
-            int importCount = 0;
-
-            foreach (String filePath in filePaths)
+            foreach ((ModUserControl modUserControl, IEnumerable<Mod> mods) in this.GetAllControlAndMods())
             {
-                if (filePath.ToLower().EndsWith(".zip"))
+                modUserControl.SetAvaialbleMods(mods);
+            }
+        }
+
+        private void UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
+        {
+            foreach (string zipFilePath in zipFilePaths)
+            {
+                if (
+                    !this.ZipUtils.TryGetFile(zipFilePath, "metadata.txt", out byte[] fileContents, out string fullName)
+                )
                 {
-                    importCount++;
-                    // This is NOT a good solution, but it should work.
-                    if (importCount >= 2)
-                    {
-                        importMod = "";
-                    }
-                    else
-                    {
-                        importMod = Path.GetFileNameWithoutExtension(filePath);
-                    }
-                    File.Copy(filePath, this.PathUtils.PathForCustomCampaign(Path.GetFileName(filePath)), true);
+                    continue;
+                }
+
+                string metadataContents = Encoding.UTF8.GetString(fileContents);
+
+                if (!ModMetadata.TryCreate(this.TracingService, metadataContents, out ModMetadata modMetadata))
+                {
+                    continue;
+                }
+                else if (!this.modsByCampaign.TryGetValue(modMetadata.Campaign, out List<Mod> modsForCampaign))
+                {
+                    this.TracingService.TraceError($"Unknown Campaign '{modMetadata.Campaign}'.");
+
+                    continue;
                 }
                 else
                 {
-                    if (Path.GetExtension(filePath).Length == 0)
+                    // Since the path is being derived from user data we need to sanitize it to only allow valid characters.
+                    string modDirectoryPath = Path.Combine(
+                        PathUtils.PathForCustomCampaigns,
+                        PathUtils.GetSanitizedPath(
+                            $"{modMetadata.Title} ({modMetadata.Version})",
+                            replacementCharacter: '-'
+                        )
+                    );
+
+                    Mod modFromZip = new Mod(modMetadata, Path.Combine(modDirectoryPath, fullName));
+
+                    if (modsForCampaign.Contains(modFromZip))
                     {
-                        importCount++;
-                        // This is NOT a good solution, but it should work.
-                        if (importCount >= 2)
-                        {
-                            importMod = "";
-                        }
-                        else
-                        {
-                            importMod = Path.GetFileNameWithoutExtension(filePath);
-                        }
-                        string targetDir = Path.Combine(
-                            this.PathUtils.PathForCustomCampaign(Path.GetFileName(filePath))
-                        );
-                        if (!Directory.Exists(targetDir))
-                        {
-                            Directory.CreateDirectory(targetDir);
-                        }
-                        PathUtils.CopyFilesAndFolders(filePath, targetDir);
-                        Directory.Delete(filePath, true);
+                        this.TracingService.TraceDebug($"The Mod '{modFromZip}' already is loaded.");
+
+                        continue;
                     }
+
+                    this.ZipUtils.ExtractZipFile(zipFilePath, modDirectoryPath);
+
+                    modsForCampaign.Add(modFromZip);
+                    this.RefreshAvailableModsForModUserControls();
+                    this.PromptToActivateMod(modFromZip);
                 }
             }
-            SC2MM_Load(null, null);
-            SC2MM_Shown(null, null);
         }
 
         private void SC2CCM_DragEnter(object sender, DragEventArgs e)
@@ -957,54 +480,27 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        protected bool TryGetFilename(DragEventArgs e, out string filename)
+        protected bool TryGetFilename(DragEventArgs e, out string fileName)
         {
-            bool ret = false;
-            filename = String.Empty;
-
             if ((e.AllowedEffect & DragDropEffects.Copy) == DragDropEffects.Copy)
             {
-                Array data = ((IDataObject)e.Data).GetData("FileName") as Array;
-                if (data != null)
+                if ((e.Data).GetData("FileName") is Array data)
                 {
-                    if ((data.Length == 1) && (data.GetValue(0) is String))
+                    if ((data.Length == 1) && (data.GetValue(0) is string))
                     {
-                        filename = ((string[])data)[0];
-                        string ext = Path.GetExtension(filename).ToLower();
-                        Console.WriteLine("Ext: " + ext);
-                        if (ext == ".zip" || ext == "")
+                        fileName = ((string[])data)[0];
+                        string extension = Path.GetExtension(fileName).ToLower();
+
+                        if (extension == ".zip" || extension == "")
                         {
-                            ret = true;
+                            return true;
                         }
                     }
                 }
             }
-            return ret;
+
+            fileName = null;
+            return false;
         }
-
-        private void handleWarningHover(object sender, EventArgs e)
-        {
-            ToolTip tt = new ToolTip();
-            tt.SetToolTip(
-                (PictureBox)sender,
-                "Warning: Active campaign may have missing or inconsistent files.\nThis usually due to changing campaigns while in a mission or menu.\nPlease exit to the menu in SC2 and set an active mod to clear this."
-            );
-        }
-
-        private void showWarningImg(PictureBox warningImg)
-        {
-            warningImg.Visible = true;
-        }
-
-        private void hideWarningImg(PictureBox warningImg)
-        {
-            warningImg.Visible = false;
-        }
-
-        private void logBox_KeyDown(object sender, KeyEventArgs e) { }
-
-        private void logBox_TextChanged(object sender, EventArgs e) { }
-
-        private void ncoModUserControl_Load(object sender, EventArgs e) { }
     }
 }
