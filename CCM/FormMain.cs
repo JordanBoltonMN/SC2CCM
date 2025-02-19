@@ -46,6 +46,8 @@ namespace Starcraft_Mod_Manager
         private IEnumerable<ModUserControl> ModUserControls =>
             CampaignsWithModUserControl.Select(campaign => this.GetModUserControlFor(campaign));
 
+        // Event handlers
+
         private void SC2MM_Load(object sender, EventArgs e)
         {
             copyUpdater();
@@ -55,12 +57,15 @@ namespace Starcraft_Mod_Manager
 
         private void SC2MM_Shown(object sender, EventArgs e)
         {
-            foreach ((ModUserControl modUserControl, Campaign campaign) in this.GetAllControlAndCampaigns())
+            IEnumerable<(ModUserControl modUserControl, Campaign campaign)> userControlsAndCampaigns =
+                CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
+
+            foreach ((ModUserControl modUserControl, Campaign campaign) in userControlsAndCampaigns)
             {
                 modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
             }
 
-            this.modsByCampaign = GetCustomMods();
+            this.modsByCampaign = GetCustomModsByCampaign();
             this.RefreshAvailableModsForModUserControls();
 
             foreach (ModUserControl modUserControl in this.ModUserControls)
@@ -90,6 +95,67 @@ namespace Starcraft_Mod_Manager
                 }
             }
         }
+
+        private void SC2CCM_DragDrop(object sender, DragEventArgs e)
+        {
+            List<string> zipFilePaths = new List<string>();
+
+            foreach (string filePath in (string[])e.Data.GetData(DataFormats.FileDrop, autoConvert: false))
+            {
+                if (!filePath.ToLower().EndsWith(".zip"))
+                {
+                    this.TracingService.TraceWarning($"Cannot process non-zip file '{filePath}'.");
+                    continue;
+                }
+
+                zipFilePaths.Add(filePath);
+            }
+
+            UnzipToCustomCampaigns(zipFilePaths);
+        }
+
+        private void importButton_Click(object sender, EventArgs e)
+        {
+            selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
+
+            if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
+            {
+                this.UnzipToCustomCampaigns(selectFolderDialogue.FileNames.ToArray());
+            }
+        }
+
+        private void installButton_Click(object sender, EventArgs e)
+        {
+            SC2MM_Load(null, null);
+            SC2MM_Shown(null, null);
+        }
+
+        private void SC2CCM_DragEnter(object sender, DragEventArgs e)
+        {
+            if (this.TryGetDraggedFileName(e, out string filename))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                this.TracingService.TraceDebug($"Drag Enter with fileName '{filename}' is invalid.");
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void SC2CCM_DragOver(object sender, DragEventArgs e)
+        {
+            if (this.TryGetDraggedFileName(e, out string _))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        // Private
 
         private void copyUpdater()
         {
@@ -175,7 +241,7 @@ namespace Starcraft_Mod_Manager
 
         // Some mods contain dependencies which are either files or directories that end with ".SC2Mod".
         // When added to the CMM these need to be moved to the Mods folder.
-        public void MoveModDependencies()
+        private void MoveModDependencies()
         {
             // Process files
             foreach (
@@ -248,7 +314,7 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        public Dictionary<Campaign, List<Mod>> GetCustomMods()
+        private Dictionary<Campaign, List<Mod>> GetCustomModsByCampaign()
         {
             Dictionary<Campaign, List<Mod>> modsByCampaign = CampaignsWithModUserControl.ToDictionary(
                 campaign => campaign,
@@ -302,21 +368,6 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private IEnumerable<(ModUserControl modUserControl, Campaign campaign)> GetAllControlAndCampaigns()
-        {
-            return CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
-        }
-
-        private IEnumerable<(ModUserControl modUserControl, IEnumerable<Mod> mods)> GetAllControlAndMods()
-        {
-            return CampaignsWithModUserControl.Select(this.GetControlAndModsFor);
-        }
-
-        private (ModUserControl modUserControl, IEnumerable<Mod> mods) GetControlAndModsFor(Campaign campaign)
-        {
-            return (this.GetModUserControlFor(campaign), modsByCampaign[campaign]);
-        }
-
         private ModUserControl GetModUserControlFor(Mod mod)
         {
             return this.GetModUserControlFor(mod.Metadata.Campaign);
@@ -343,46 +394,18 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void importButton_Click(object sender, EventArgs e)
-        {
-            string[] targetFilePaths;
-            selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
-            if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
-            {
-                targetFilePaths = selectFolderDialogue.FileNames.ToArray<string>();
-                this.UnzipToCustomCampaigns(targetFilePaths);
-            }
-        }
-
-        private void installButton_Click(object sender, EventArgs e)
-        {
-            SC2MM_Load(null, null);
-            SC2MM_Shown(null, null);
-        }
-
-        private void SC2CCM_DragDrop(object sender, DragEventArgs e)
-        {
-            List<string> zipFilePaths = new List<string>();
-
-            foreach (string filePath in (string[])e.Data.GetData(DataFormats.FileDrop, autoConvert: false))
-            {
-                if (!filePath.ToLower().EndsWith(".zip"))
-                {
-                    this.TracingService.TraceWarning($"Cannot process non-zip file '{filePath}'.");
-                    continue;
-                }
-
-                zipFilePaths.Add(filePath);
-            }
-
-            UnzipToCustomCampaigns(zipFilePaths);
-        }
-
         private void RefreshAvailableModsForModUserControls()
         {
-            foreach ((ModUserControl modUserControl, IEnumerable<Mod> mods) in this.GetAllControlAndMods())
+            foreach (ModUserControl modUserControl in this.ModUserControls)
             {
-                modUserControl.SetAvaialbleMods(mods);
+                if (this.modsByCampaign.TryGetValue(modUserControl.Campaign, out List<Mod> mods))
+                {
+                    modUserControl.SetAvaialbleMods(mods);
+                }
+                else
+                {
+                    this.TracingService.TraceError($"Unknown campaign '{modUserControl.Campaign}' for ModUserControl.");
+                }
             }
         }
 
@@ -440,32 +463,7 @@ namespace Starcraft_Mod_Manager
             this.MoveModDependencies();
         }
 
-        private void SC2CCM_DragEnter(object sender, DragEventArgs e)
-        {
-            if (this.TryGetFilename(e, out string filename))
-            {
-                e.Effect = DragDropEffects.Move;
-            }
-            else
-            {
-                this.TracingService.TraceDebug($"Drag Enter with fileName '{filename}' is invalid.");
-                e.Effect = DragDropEffects.None;
-            }
-        }
-
-        private void SC2CCM_DragOver(object sender, DragEventArgs e)
-        {
-            if (this.TryGetFilename(e, out string _))
-            {
-                e.Effect = DragDropEffects.Move;
-            }
-            else
-            {
-                e.Effect = DragDropEffects.None;
-            }
-        }
-
-        protected bool TryGetFilename(DragEventArgs e, out string fileName)
+        private bool TryGetDraggedFileName(DragEventArgs e, out string fileName)
         {
             if ((e.AllowedEffect & DragDropEffects.Copy) == DragDropEffects.Copy)
             {
