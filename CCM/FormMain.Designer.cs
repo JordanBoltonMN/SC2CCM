@@ -141,7 +141,7 @@
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragEnter);
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragOver);
-            this.DragLeave += new System.EventHandler(this.SC2CCM_DragLeave);
+            
             ((System.ComponentModel.ISupportInitialize)(this.importPicturebox)).EndInit();
             this.ResumeLayout(false);
 

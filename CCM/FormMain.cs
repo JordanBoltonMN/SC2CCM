@@ -50,7 +50,7 @@ namespace Starcraft_Mod_Manager
         {
             copyUpdater();
             this.PathUtils.VerifyDirectories();
-            handleDependencies();
+            MoveModDependencies();
         }
 
         private void SC2MM_Shown(object sender, EventArgs e)
@@ -100,7 +100,7 @@ namespace Starcraft_Mod_Manager
                     File.Delete("SC2CCM Updater.exe");
                     File.Move("SC2CCMU.exe", "SC2CCM Updater.exe");
                 }
-                catch (IOException e)
+                catch (IOException)
                 {
                     MessageBox.Show("Failed to delete/move the Updater!");
                 }
@@ -126,7 +126,7 @@ namespace Starcraft_Mod_Manager
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(PathUtils.PathForCcmConfig));
                 }
-                catch (IOException e)
+                catch (IOException)
                 {
                     MessageBox.Show(
                         "Unable to create configuration file/folder\nTry running this as administrator.",
@@ -173,56 +173,46 @@ namespace Starcraft_Mod_Manager
             return pathForStarcraft2Exe;
         }
 
-        /* Moves all the .SC2Mod files and folders into the Mods folder.
-         * If a .SC2Mod file exists and a .SC2Mod folder is moved in (if the dev updates the method),
-         * then an error would occur.  This is handled here.
-         */
-        public void handleDependencies()
+        // Some mods contain dependencies which are either files or directories that end with ".SC2Mod".
+        // When added to the CMM these need to be moved to the Mods folder.
+        public void MoveModDependencies()
         {
-            string[] files = Directory.GetFiles(
-                this.PathUtils.PathForCustomCampaigns,
-                "*.SC2Mod",
-                SearchOption.AllDirectories
-            );
-            foreach (string filePath in files)
+            // Process files
+            foreach (
+                string filePath in Directory.GetFiles(
+                    this.PathUtils.PathForCustomCampaigns,
+                    "*.SC2Mod",
+                    SearchOption.AllDirectories
+                )
+            )
             {
                 string fileName = Path.GetFileName(filePath);
-                // Folder with same name as file check
-                if (Directory.Exists(this.PathUtils.PathForMod(fileName)))
+                string destinationFilePath = this.PathUtils.PathForMod(fileName);
+
+                try
                 {
-                    Directory.Delete(this.PathUtils.PathForMod(fileName), true);
+                    // If a directory or file already exists at the destination, delete it.
+                    if (Directory.Exists(destinationFilePath))
+                    {
+                        Directory.Delete(destinationFilePath, true);
+                    }
+                    if (File.Exists(destinationFilePath))
+                    {
+                        File.Delete(destinationFilePath);
+                    }
+
+                    File.Move(filePath, destinationFilePath);
+                    this.TracingService.TraceDebug($"Moved file '{fileName}' to Dependencies folder.");
                 }
-                if (File.Exists(this.PathUtils.PathForMod(fileName)))
+                catch (IOException)
                 {
-                    try
-                    {
-                        File.Delete(this.PathUtils.PathForMod(fileName));
-                        File.Move(filePath, this.PathUtils.PathForMod(fileName));
-                        this.TracingService.TraceDebug($"Moved file '{fileName}' to Dependencies folder.");
-                    }
-                    catch (IOException e)
-                    {
-                        this.TracingService.TraceWarning(
-                            $"Could not replace '{fileName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
-                        );
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        File.Move(filePath, this.PathUtils.PathForMod(fileName));
-                        this.TracingService.TraceDebug($"Moved file '{fileName}' to Dependnecies folder.");
-                    }
-                    catch (IOException e)
-                    {
-                        this.TracingService.TraceWarning(
-                            $"Could not move file '{fileName}' to Dependnecies folder. Is it open somewhere?"
-                        );
-                    }
+                    this.TracingService.TraceWarning(
+                        $"Could not move/replace file '{fileName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
+                    );
                 }
             }
 
+            // Process directories
             foreach (
                 string dirPath in Directory.GetDirectories(
                     this.PathUtils.PathForCustomCampaigns,
@@ -232,30 +222,28 @@ namespace Starcraft_Mod_Manager
             )
             {
                 string dirName = Path.GetFileName(dirPath);
-                // File with name name as folder check
-                if (File.Exists(this.PathUtils.PathForMod(dirName)))
+                string destinationDirectoryPath = this.PathUtils.PathForMod(dirName);
+
+                try
                 {
-                    File.Delete(this.PathUtils.PathForMod(dirName));
-                }
-                if (Directory.Exists(this.PathUtils.PathForMod(dirName)))
-                {
-                    try
+                    // If a file or directory already exists at the destination, delete it.
+                    if (File.Exists(destinationDirectoryPath))
                     {
-                        Directory.Delete(this.PathUtils.PathForMod(dirName), true);
-                        Directory.Move(dirPath, this.PathUtils.PathForMod(dirName));
-                        this.TracingService.TraceDebug($"Moved file '{dirName}' to Dependencies folder.");
+                        File.Delete(destinationDirectoryPath);
                     }
-                    catch (IOException e)
+                    if (Directory.Exists(destinationDirectoryPath))
                     {
-                        this.TracingService.TraceError(
-                            $"Could not replace '{dirName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
-                        );
+                        Directory.Delete(destinationDirectoryPath, true);
                     }
+
+                    Directory.Move(dirPath, destinationDirectoryPath);
+                    this.TracingService.TraceDebug($"Moved directory '{dirName}' to Dependencies folder.");
                 }
-                else
+                catch (IOException)
                 {
-                    Directory.Move(dirPath, this.PathUtils.PathForMod(dirName));
-                    this.TracingService.TraceDebug($"Moved file '{dirName}' to Dependencies folder.");
+                    this.TracingService.TraceWarning(
+                        $"Could not move/replace directory '{dirName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
+                    );
                 }
             }
         }
@@ -448,6 +436,8 @@ namespace Starcraft_Mod_Manager
                     this.PromptToActivateMod(modFromZip);
                 }
             }
+
+            this.MoveModDependencies();
         }
 
         private void SC2CCM_DragEnter(object sender, DragEventArgs e)
@@ -461,11 +451,6 @@ namespace Starcraft_Mod_Manager
                 this.TracingService.TraceDebug($"Drag Enter with fileName '{filename}' is invalid.");
                 e.Effect = DragDropEffects.None;
             }
-        }
-
-        private void SC2CCM_DragLeave(object sender, EventArgs e)
-        {
-            //e.Effect = DragDropEffects.Move;
         }
 
         private void SC2CCM_DragOver(object sender, DragEventArgs e)

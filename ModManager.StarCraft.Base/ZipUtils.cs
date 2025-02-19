@@ -14,11 +14,13 @@ namespace ModManager.StarCraft.Base
 
         protected ITracingService TracingService { get; }
 
-        public bool TryGetFile(string zipPath, string fileName, out byte[] fileContents, out string fullName)
+        // Recursively searches a zip for an entry matching the given file name.
+        // Returns false if more than one match occurs.
+        public bool TryGetFile(string zipFilePath, string fileName, out byte[] fileContents, out string fullName)
         {
-            if (!File.Exists(zipPath))
+            if (!File.Exists(zipFilePath))
             {
-                this.TracingService.TraceError($"Zip path '{zipPath}' does not exist.");
+                this.TracingService.TraceError($"Zip path '{zipFilePath}' does not exist.");
 
                 fileContents = null;
                 fullName = null;
@@ -26,7 +28,7 @@ namespace ModManager.StarCraft.Base
                 return false;
             }
 
-            using (FileStream zipToOpen = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
                 {
@@ -64,7 +66,8 @@ namespace ModManager.StarCraft.Base
             }
         }
 
-        public void ExtractZipFile(string zipPath, string destinationFolder)
+        // Iteratively extracts the zip to the destination.
+        public void ExtractZipFile(string zipFilePath, string destinationFolder)
         {
             if (Directory.Exists(destinationFolder))
             {
@@ -76,7 +79,7 @@ namespace ModManager.StarCraft.Base
                 Directory.CreateDirectory(destinationFolder);
             }
 
-            using (FileStream zipToOpen = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
                 {

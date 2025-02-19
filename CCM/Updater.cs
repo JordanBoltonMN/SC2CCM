@@ -38,7 +38,7 @@ public class Updater
         {
             apiResponse = Get("https://api.github.com/repos/7thace/SC2CCM/releases");
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //Failed to connect, do not update.
             return 0;
@@ -162,7 +162,7 @@ public class Updater
                     sw.WriteLine("SC2CCMU=0");
                 }
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 return;
             }
@@ -184,7 +184,7 @@ public class Updater
                     sw.WriteLine("SC2CCMU=" + versionIDs[1]);
                 }
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 Environment.Exit(0);
             }
