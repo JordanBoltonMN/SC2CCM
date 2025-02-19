@@ -149,7 +149,7 @@ namespace Starcraft_Mod_Manager
 
             PathUtils.CopyFilesAndFolders(
                 Path.GetDirectoryName(mod.MetadataFilePath),
-                this.PathUtils.PathForCampaign(this.Campaign)
+                this.PathUtils.GetPathForCampaign(this.Campaign)
             );
         }
 

@@ -90,7 +90,7 @@ namespace Starcraft_Mod_Manager
             {
                 if (
                     !this.PathUtils.TryFindFileRecursively(
-                        this.PathUtils.PathForCampaign(modUserControl.Campaign),
+                        this.PathUtils.GetPathForCampaign(modUserControl.Campaign),
                         "metadata.txt",
                         directoryName => !this.PathUtils.CampaignDirectories.Contains(directoryName),
                         out string metadataFilePath
@@ -311,30 +311,21 @@ namespace Starcraft_Mod_Manager
         {
             // Process files
             foreach (
-                string filePath in Directory.EnumerateFiles(
+                string sourceFilePath in Directory.EnumerateFiles(
                     this.PathUtils.PathForCustomCampaigns,
                     "*.SC2Mod",
                     SearchOption.AllDirectories
                 )
             )
             {
-                string fileName = Path.GetFileName(filePath);
-                string destinationFilePath = this.PathUtils.PathForMod(fileName);
+                string fileName = Path.GetFileName(sourceFilePath);
+                string destinationFilePath = Path.Combine(this.PathUtils.PathForMods, fileName);
 
                 try
                 {
-                    // If a directory or file already exists at the destination, delete it.
-                    if (Directory.Exists(destinationFilePath))
-                    {
-                        Directory.Delete(destinationFilePath, true);
-                    }
-                    if (File.Exists(destinationFilePath))
-                    {
-                        File.Delete(destinationFilePath);
-                    }
-
-                    File.Move(filePath, destinationFilePath);
-                    this.TracingService.TraceDebug($"Moved file '{fileName}' to Dependencies folder.");
+                    this.PathUtils.DeleteIfExists(destinationFilePath);
+                    this.TracingService.TraceDebug($"Moving file '{fileName}' to Dependencies folder.");
+                    File.Move(sourceFilePath, destinationFilePath);
                 }
                 catch (IOException)
                 {
@@ -346,35 +337,26 @@ namespace Starcraft_Mod_Manager
 
             // Process directories
             foreach (
-                string dirPath in Directory.EnumerateDirectories(
+                string sourceDirectoryPath in Directory.EnumerateDirectories(
                     this.PathUtils.PathForCustomCampaigns,
                     "*.SC2Mod",
                     SearchOption.AllDirectories
                 )
             )
             {
-                string dirName = Path.GetFileName(dirPath);
-                string destinationDirectoryPath = this.PathUtils.PathForMod(dirName);
+                string directoryName = Path.GetDirectoryName(sourceDirectoryPath);
+                string destinationDirectoryPath = Path.Combine(this.PathUtils.PathForMods, directoryName);
 
                 try
                 {
-                    // If a file or directory already exists at the destination, delete it.
-                    if (File.Exists(destinationDirectoryPath))
-                    {
-                        File.Delete(destinationDirectoryPath);
-                    }
-                    if (Directory.Exists(destinationDirectoryPath))
-                    {
-                        Directory.Delete(destinationDirectoryPath, true);
-                    }
-
-                    Directory.Move(dirPath, destinationDirectoryPath);
-                    this.TracingService.TraceDebug($"Moved directory '{dirName}' to Dependencies folder.");
+                    this.PathUtils.DeleteIfExists(destinationDirectoryPath);
+                    this.TracingService.TraceDebug($"Moving directory '{directoryName}' to Dependencies folder.");
+                    Directory.Move(sourceDirectoryPath, destinationDirectoryPath);
                 }
                 catch (IOException)
                 {
                     this.TracingService.TraceWarning(
-                        $"Could not move/replace directory '{dirName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
+                        $"Could not move/replace directory '{directoryName}'. Exit StarCraft II and hit \"Reload\" to fix install properly."
                     );
                 }
             }
@@ -389,7 +371,7 @@ namespace Starcraft_Mod_Manager
 
             // Search in each directory
             foreach (
-                string dir in Directory.EnumerateDirectories(
+                string directoryPath in Directory.EnumerateDirectories(
                     this.PathUtils.PathForCustomCampaigns,
                     "*",
                     SearchOption.TopDirectoryOnly
@@ -397,22 +379,24 @@ namespace Starcraft_Mod_Manager
             )
             {
                 // for a metadata.txt file
-                string[] files = Directory.GetFiles(dir, "metadata.txt", SearchOption.AllDirectories);
+                string[] files = Directory.GetFiles(directoryPath, "metadata.txt", SearchOption.AllDirectories);
                 if (files.Length == 0)
                 {
-                    this.TracingService.TraceWarning($"Unable to find metadata.txt for '{Path.GetFileName(dir)}'.");
+                    this.TracingService.TraceWarning(
+                        $"Unable to find metadata.txt for '{Path.GetFileName(directoryPath)}'."
+                    );
 
                     continue;
                 }
                 else if (files.Length >= 2)
                 {
-                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{dir}'.");
+                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{directoryPath}'.");
 
                     continue;
                 }
                 else if (!Mod.TryCreate(this.TracingService, files[0], out Mod currentMod))
                 {
-                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{dir}'.");
+                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{directoryPath}'.");
 
                     continue;
                 }

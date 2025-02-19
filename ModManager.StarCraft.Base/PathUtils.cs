@@ -25,6 +25,7 @@ namespace ModManager.StarCraft.Base
             this.PathForCampaignVoidPrologue = Path.Combine(pathForStarcraft2, CommonPath.Campaign_Prologue);
             this.PathForCampaignNco = Path.Combine(pathForStarcraft2, CommonPath.Campaign_Nco);
             this.PathForCustomCampaigns = Path.Combine(pathForStarcraft2, CommonPath.CustomCampaigns);
+            this.PathForMods = Path.Combine(pathForStarcraft2, CommonPath.Mods);
         }
 
         public string[] CampaignDirectories =>
@@ -37,6 +38,26 @@ namespace ModManager.StarCraft.Base
                 this.PathForCampaignNco,
                 this.PathForCampaignVoidPrologue,
             };
+
+        // Looks up the SC2Switcher.exe location in the registry (if it exists), then navigates up two directories.
+        public static string PathForStarcraft2Exe()
+        {
+            using (
+                RegistryKey registeryKey = Registry.LocalMachine.OpenSubKey(
+                    @"Software\Classes\Blizzard.SC2Save\shell\open\command"
+                )
+            )
+            {
+                if (!(registeryKey?.GetValue(null) is string pathForSc2SwitcherExe))
+                {
+                    return null;
+                }
+
+                string pathForSc2InstallDirectory = Path.GetDirectoryName(Path.GetDirectoryName(pathForSc2SwitcherExe));
+
+                return Path.Combine(pathForSc2InstallDirectory, "StarCraft II.exe");
+            }
+        }
 
         public bool TryFindFileRecursively(
             string directory,
@@ -84,39 +105,9 @@ namespace ModManager.StarCraft.Base
             return false;
         }
 
-        public void CopyFilesAndFolders(string sourceDirectory, string targetDirectory)
-        {
-            foreach (
-                string sourceSubDirectory in Directory.EnumerateDirectories(
-                    sourceDirectory,
-                    "*",
-                    SearchOption.AllDirectories
-                )
-            )
-            {
-                string targetSubDirectory = sourceSubDirectory.Replace(sourceDirectory, targetDirectory);
-
-                if (!Directory.Exists(targetSubDirectory))
-                {
-                    this.TracingService.TraceDebug($"Creating subdirectory '{targetSubDirectory}'.");
-                    Directory.CreateDirectory(sourceSubDirectory.Replace(sourceDirectory, targetDirectory));
-                }
-            }
-
-            foreach (
-                string sourceFilePath in Directory.EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories)
-            )
-            {
-                string targetFilePath = sourceFilePath.Replace(sourceDirectory, targetDirectory);
-                this.TracingService.TraceDebug($"Copying '{sourceFilePath}' to '{targetFilePath}'.");
-
-                File.Copy(sourceFilePath, targetFilePath, overwrite: true);
-            }
-        }
-
         public void ClearCampaign(Campaign campaign)
         {
-            this.ClearDirectory(this.PathForCampaign(campaign));
+            this.ClearDirectory(this.GetPathForCampaign(campaign));
 
             if (campaign == Campaign.HotS)
             {
@@ -160,23 +151,47 @@ namespace ModManager.StarCraft.Base
             }
         }
 
-        // Looks up the SC2Switcher.exe location in the registry (if it exists), then navigates up two directories.
-        public static string PathForStarcraft2Exe()
+        public void CopyFilesAndFolders(string sourceDirectory, string targetDirectory)
         {
-            using (
-                RegistryKey registeryKey = Registry.LocalMachine.OpenSubKey(
-                    @"Software\Classes\Blizzard.SC2Save\shell\open\command"
+            foreach (
+                string sourceSubDirectory in Directory.EnumerateDirectories(
+                    sourceDirectory,
+                    "*",
+                    SearchOption.AllDirectories
                 )
             )
             {
-                if (!(registeryKey?.GetValue(null) is string pathForSc2SwitcherExe))
+                string targetSubDirectory = sourceSubDirectory.Replace(sourceDirectory, targetDirectory);
+
+                if (!Directory.Exists(targetSubDirectory))
                 {
-                    return null;
+                    this.TracingService.TraceDebug($"Creating subdirectory '{targetSubDirectory}'.");
+                    Directory.CreateDirectory(sourceSubDirectory.Replace(sourceDirectory, targetDirectory));
                 }
+            }
 
-                string pathForSc2InstallDirectory = Path.GetDirectoryName(Path.GetDirectoryName(pathForSc2SwitcherExe));
+            foreach (
+                string sourceFilePath in Directory.EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories)
+            )
+            {
+                string targetFilePath = sourceFilePath.Replace(sourceDirectory, targetDirectory);
+                this.TracingService.TraceDebug($"Copying '{sourceFilePath}' to '{targetFilePath}'.");
 
-                return Path.Combine(pathForSc2InstallDirectory, "StarCraft II.exe");
+                File.Copy(sourceFilePath, targetFilePath, overwrite: true);
+            }
+        }
+
+        public void DeleteIfExists(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                this.TracingService.TraceDebug($"Deleting directory '{path}'.");
+                Directory.Delete(path, true);
+            }
+            if (File.Exists(path))
+            {
+                this.TracingService.TraceDebug($"Delete file '{path}'.");
+                File.Delete(path);
             }
         }
 
@@ -193,7 +208,7 @@ namespace ModManager.StarCraft.Base
                 PathForCampaignVoidPrologue,
                 PathForCampaignNco,
                 PathForCustomCampaigns,
-                PathForMod(null),
+                PathForMods,
             };
 
             foreach (string directory in directoriesToVerify)
@@ -208,7 +223,7 @@ namespace ModManager.StarCraft.Base
             }
         }
 
-        public string PathForCampaign(Campaign campaign)
+        public string GetPathForCampaign(Campaign campaign)
         {
             switch (campaign)
             {
@@ -227,13 +242,6 @@ namespace ModManager.StarCraft.Base
                 default:
                     throw new ArgumentException($"Unknown campaign '{campaign}'.");
             }
-        }
-
-        public string PathForMod(string partialPath)
-        {
-            return partialPath is null
-                ? Path.Combine(PathForStarcraft2, CommonPath.Mods)
-                : Path.Combine(PathForStarcraft2, CommonPath.Mods, partialPath);
         }
 
         public string GetImmediateSubdirectory(string candidatePath, string basePath)
@@ -300,5 +308,6 @@ namespace ModManager.StarCraft.Base
         public string PathForCampaignVoidPrologue { get; }
         public string PathForCampaignNco { get; }
         public string PathForCustomCampaigns { get; }
+        public string PathForMods { get; }
     }
 }
