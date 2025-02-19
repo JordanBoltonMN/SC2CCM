@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ModManager.StarCraft.Services.Tracing;
 
@@ -27,36 +28,63 @@ namespace ModManager.StarCraft.Base.Tracing
         private string CurrentOutputFilePath { get; set; }
         private long CurrentFileSizeInBytes { get; set; }
 
-        public void TraceMessage(TracingLevel level, string message)
+        public void TraceMessage(
+            TracingLevel level,
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.EmitMessageToFile(level, message);
+            this.EmitMessageToFile(level, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceError(string message)
+        public void TraceError(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.EmitMessageToFile(TracingLevel.Error, message);
+            this.EmitMessageToFile(TracingLevel.Error, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceWarning(string message)
+        public void TraceWarning(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.EmitMessageToFile(TracingLevel.Warning, message);
+            this.EmitMessageToFile(TracingLevel.Warning, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceInfo(string message)
+        public void TraceInfo(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.EmitMessageToFile(TracingLevel.Info, message);
+            this.EmitMessageToFile(TracingLevel.Info, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceDebug(string message)
+        public void TraceDebug(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.EmitMessageToFile(TracingLevel.Debug, message);
+            this.EmitMessageToFile(TracingLevel.Debug, message, callerFilePath, callerMemberName);
         }
 
-        private void EmitMessageToFile(TracingLevel level, string message)
+        private void EmitMessageToFile(
+            TracingLevel level,
+            string message,
+            string callerFilePath,
+            string callerMemberName
+        )
         {
             lock (this.LockObject)
             {
-                string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] - {level} - {message}";
+                string logEntry =
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {level} - {Path.GetFileNameWithoutExtension(callerFilePath)}/{callerMemberName} - {message}";
 
                 long logWriteSizeInBytes = Encoding.UTF8.GetByteCount(message);
                 long fileSizeIfLogWritten = this.CurrentFileSizeInBytes + logWriteSizeInBytes;

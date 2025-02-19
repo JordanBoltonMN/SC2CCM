@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using ModManager.StarCraft.Base.Tracing;
 
 namespace ModManager.StarCraft.Services.Tracing
@@ -21,29 +22,50 @@ namespace ModManager.StarCraft.Services.Tracing
             }
         }
 
-        public void TraceMessage(TracingLevel level, string message)
+        public void TraceMessage(
+            TracingLevel level,
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.TraceMessageOnAll(level, message);
+            this.TraceMessageOnAll(level, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceError(string message)
+        public void TraceError(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.TraceMessageOnAll(TracingLevel.Error, message);
+            this.TraceMessageOnAll(TracingLevel.Error, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceWarning(string message)
+        public void TraceWarning(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.TraceMessageOnAll(TracingLevel.Warning, message);
+            this.TraceMessageOnAll(TracingLevel.Warning, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceInfo(string message)
+        public void TraceInfo(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.TraceMessageOnAll(TracingLevel.Info, message);
+            this.TraceMessageOnAll(TracingLevel.Info, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceDebug(string message)
+        public void TraceDebug(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.TraceMessageOnAll(TracingLevel.Debug, message);
+            this.TraceMessageOnAll(TracingLevel.Debug, message, callerFilePath, callerMemberName);
         }
 
         public void Register(ITracingService tracingService)
@@ -51,11 +73,16 @@ namespace ModManager.StarCraft.Services.Tracing
             this.RegisteredTracingServices.Add(tracingService);
         }
 
-        private void TraceMessageOnAll(TracingLevel tracingLevel, string message)
+        private void TraceMessageOnAll(
+            TracingLevel tracingLevel,
+            string message,
+            string callerFilePath,
+            string callerMemberName
+        )
         {
             foreach (ITracingService tracingService in this.RegisteredTracingServices)
             {
-                tracingService.TraceMessage(tracingLevel, message);
+                tracingService.TraceMessage(tracingLevel, message, callerFilePath, callerMemberName);
             }
         }
 

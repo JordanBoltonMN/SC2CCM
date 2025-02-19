@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
@@ -32,32 +33,58 @@ namespace Starcraft_Mod_Manager
 
         private List<(TracingLevel tracingLevel, string message)> Messages { get; }
 
-        public void TraceMessage(TracingLevel level, string message)
+        public void TraceMessage(
+            TracingLevel level,
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.AppendMessageToRichTextBox(level, message);
+            this.AppendMessageToRichTextBox(level, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceError(string message)
+        public void TraceError(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.AppendMessageToRichTextBox(TracingLevel.Error, message);
+            this.AppendMessageToRichTextBox(TracingLevel.Error, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceWarning(string message)
+        public void TraceWarning(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.AppendMessageToRichTextBox(TracingLevel.Warning, message);
+            this.AppendMessageToRichTextBox(TracingLevel.Warning, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceInfo(string message)
+        public void TraceInfo(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.AppendMessageToRichTextBox(TracingLevel.Info, message);
+            this.AppendMessageToRichTextBox(TracingLevel.Info, message, callerFilePath, callerMemberName);
         }
 
-        public void TraceDebug(string message)
+        public void TraceDebug(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
         {
-            this.AppendMessageToRichTextBox(TracingLevel.Debug, message);
+            this.AppendMessageToRichTextBox(TracingLevel.Debug, message, callerFilePath, callerMemberName);
         }
 
-        private void AppendMessageToRichTextBox(TracingLevel level, string message)
+        private void AppendMessageToRichTextBox(
+            TracingLevel level,
+            string message,
+            [CallerFilePath] string _callerFilePath = "",
+            [CallerMemberName] string _callerMemberName = ""
+        )
         {
             this.Messages.Add((level, message));
 

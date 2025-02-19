@@ -20,7 +20,7 @@ namespace Starcraft_Mod_Manager
                 new FormMain(
                     new RollingFileLogger(
                         Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                        "SMM_Log",
+                        "SCC",
                         1024 * 1024 /* 1 megabyte */
                     )
                 )
