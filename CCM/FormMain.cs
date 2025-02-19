@@ -518,5 +518,9 @@ namespace Starcraft_Mod_Manager
         private void progressBar1_Click(object sender, EventArgs e) { }
 
         private void label1_Click(object sender, EventArgs e) { }
+
+        private void ncoModUserControl_Load(object sender, EventArgs e) { }
+
+        private void logBox_TextChanged(object sender, EventArgs e) { }
     }
 }

@@ -45,9 +45,9 @@
             // 
             // importButton
             // 
-            this.importButton.Location = new System.Drawing.Point(732, 300);
+            this.importButton.Location = new System.Drawing.Point(693, 288);
             this.importButton.Name = "importButton";
-            this.importButton.Size = new System.Drawing.Size(58, 58);
+            this.importButton.Size = new System.Drawing.Size(90, 60);
             this.importButton.TabIndex = 19;
             this.importButton.Text = "Select\r\nZip to\r\nImport";
             this.importButton.UseVisualStyleBackColor = true;
@@ -55,9 +55,9 @@
             // 
             // installButton
             // 
-            this.installButton.Location = new System.Drawing.Point(668, 300);
+            this.installButton.Location = new System.Drawing.Point(593, 288);
             this.installButton.Name = "installButton";
-            this.installButton.Size = new System.Drawing.Size(58, 58);
+            this.installButton.Size = new System.Drawing.Size(90, 60);
             this.installButton.TabIndex = 20;
             this.installButton.Text = "Refresh";
             this.installButton.UseVisualStyleBackColor = true;
@@ -71,20 +71,21 @@
             // 
             this.importPicturebox.BackColor = System.Drawing.SystemColors.Control;
             this.importPicturebox.Image = ((System.Drawing.Image)(resources.GetObject("importPicturebox.Image")));
-            this.importPicturebox.Location = new System.Drawing.Point(12, 301);
+            this.importPicturebox.Location = new System.Drawing.Point(5, 288);
             this.importPicturebox.Margin = new System.Windows.Forms.Padding(0);
             this.importPicturebox.Name = "importPicturebox";
-            this.importPicturebox.Size = new System.Drawing.Size(386, 56);
+            this.importPicturebox.Size = new System.Drawing.Size(582, 60);
             this.importPicturebox.TabIndex = 21;
             this.importPicturebox.TabStop = false;
             // 
             // logBox
             // 
-            this.logBox.Location = new System.Drawing.Point(405, 301);
+            this.logBox.Location = new System.Drawing.Point(5, 351);
             this.logBox.Name = "logBox";
-            this.logBox.Size = new System.Drawing.Size(256, 56);
+            this.logBox.Size = new System.Drawing.Size(778, 98);
             this.logBox.TabIndex = 22;
             this.logBox.Text = "";
+            this.logBox.WordWrap = false;
             // 
             // selectFolderDialogue
             // 
@@ -92,7 +93,7 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(12, 362);
+            this.progressBar.Location = new System.Drawing.Point(5, 455);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(778, 23);
             this.progressBar.TabIndex = 29;
@@ -101,28 +102,28 @@
             // 
             // ncoModUserControl
             // 
-            this.ncoModUserControl.Location = new System.Drawing.Point(600, 12);
+            this.ncoModUserControl.Location = new System.Drawing.Point(593, 5);
             this.ncoModUserControl.Name = "ncoModUserControl";
             this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
             this.ncoModUserControl.TabIndex = 28;
             // 
             // lotvModUserControl
             // 
-            this.lotvModUserControl.Location = new System.Drawing.Point(404, 12);
+            this.lotvModUserControl.Location = new System.Drawing.Point(397, 5);
             this.lotvModUserControl.Name = "lotvModUserControl";
             this.lotvModUserControl.Size = new System.Drawing.Size(190, 280);
             this.lotvModUserControl.TabIndex = 27;
             // 
             // hotsModUserControl
             // 
-            this.hotsModUserControl.Location = new System.Drawing.Point(208, 12);
+            this.hotsModUserControl.Location = new System.Drawing.Point(201, 5);
             this.hotsModUserControl.Name = "hotsModUserControl";
             this.hotsModUserControl.Size = new System.Drawing.Size(190, 280);
             this.hotsModUserControl.TabIndex = 26;
             // 
             // wolModUserControl
             // 
-            this.wolModUserControl.Location = new System.Drawing.Point(12, 12);
+            this.wolModUserControl.Location = new System.Drawing.Point(5, 5);
             this.wolModUserControl.Name = "wolModUserControl";
             this.wolModUserControl.Size = new System.Drawing.Size(190, 280);
             this.wolModUserControl.TabIndex = 25;
@@ -131,8 +132,10 @@
             // 
             this.AllowDrop = true;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
+            this.AutoSize = true;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(802, 392);
+            this.ClientSize = new System.Drawing.Size(788, 484);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.ncoModUserControl);
             this.Controls.Add(this.lotvModUserControl);
