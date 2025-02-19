@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
@@ -11,28 +10,6 @@ namespace ModManager.StarCraft.Base
             this.Metadata = modMetadata;
             this.MetadataFilePath = metadataFilePath;
             this.IsActive = false;
-        }
-
-        public static Dictionary<string, string> ParseMetadataContents(string metadataContents)
-        {
-            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
-
-            foreach (string line in metadataContents.ReadLines())
-            {
-                int indexOfEquals = line.IndexOf("=");
-
-                if (indexOfEquals == -1)
-                {
-                    continue;
-                }
-
-                string key = line.Substring(0, indexOfEquals).Trim();
-                string value = line.Substring(indexOfEquals + 1).Trim();
-
-                keyValuePairs.Add(key, value);
-            }
-
-            return keyValuePairs;
         }
 
         public static bool TryCreate(ITracingService tracingService, string metadataFilePath, out Mod mod)

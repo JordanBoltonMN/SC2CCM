@@ -71,13 +71,10 @@ namespace ModManager.StarCraft.Base
         // Iteratively extracts the zip to the destination.
         public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<int> progress)
         {
-            if (Directory.Exists(destinationFolder))
-            {
-                this.TracingService.TraceDebug($"Destination '{destinationFolder}' already exists. No actions needed.");
-            }
-            else
+            if (!Directory.Exists(destinationFolder))
             {
                 this.TracingService.TraceDebug($"Destination '{destinationFolder}' does not exist. Creating.");
+
                 Directory.CreateDirectory(destinationFolder);
             }
 

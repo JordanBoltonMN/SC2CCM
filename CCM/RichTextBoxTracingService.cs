@@ -88,7 +88,7 @@ namespace Starcraft_Mod_Manager
         {
             this.Messages.Add((level, message));
 
-            if (level < this.TracingLevelThreshold)
+            if (level > this.TracingLevelThreshold)
             {
                 return;
             }

@@ -39,9 +39,7 @@ namespace ModManager.StarCraft.Base
             out ModMetadata modMetadata
         )
         {
-            Dictionary<string, string> keyValuePairs = ParseMetadataContents(modMetadataBlob);
-
-            return TryCreate(tracingService, keyValuePairs, out modMetadata);
+            return TryCreate(tracingService, ParseMetadataContents(modMetadataBlob), out modMetadata);
         }
 
         public static bool TryCreate(

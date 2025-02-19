@@ -6,7 +6,6 @@ using System.Linq;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace Starcraft_Mod_Manager
@@ -97,24 +96,28 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        // Sets the mod selected under the dropdown.
-        // Passing null acts as an unselect.
-        public void SelectMod(Mod mod)
-        {
-            this.modSelectDropdown.SelectedIndex = mod != null ? this.modSelectDropdown.Items.IndexOf(mod) : -1;
-            this.RefreshActiveModText(mod);
-        }
-
         // Sets the mod as active by copying files to StarCraft's directories.
         public void SetActiveMod(Mod mod, bool shouldCopyModFiles)
         {
-            this.SelectMod(mod);
-            this.ActiveMod = mod;
+            this.TracingService.TraceInfo($"Setting ActiveMod to '{mod.ToTraceableString()}' for '{this.Campaign}'.");
 
             if (shouldCopyModFiles)
             {
                 this.CopyModFiles(mod);
             }
+
+            this.SelectMod(mod);
+            this.ActiveMod = mod;
+        }
+
+        // Sets the mod selected under the dropdown.
+        // Passing null acts as an unselect.
+        public void SelectMod(Mod mod)
+        {
+            this.TracingService.TraceDebug($"Selecting mod '{mod.ToTraceableString()}' for '{this.Campaign}'.");
+
+            this.modSelectDropdown.SelectedIndex = mod != null ? this.modSelectDropdown.Items.IndexOf(mod) : -1;
+            this.RefreshActiveModText(mod);
         }
 
         // Private
@@ -140,6 +143,8 @@ namespace Starcraft_Mod_Manager
 
         private void CopyModFiles(Mod mod)
         {
+            this.TracingService.TraceDebug($"Copying files for '{mod.ToTraceableString()}' for '{this.Campaign}'.");
+
             this.ClearCampaignDirectory();
 
             PathUtils.CopyFilesAndFolders(
@@ -176,7 +181,13 @@ namespace Starcraft_Mod_Manager
                 return;
             }
 
-            if (mod.Equals(this.ActiveMod))
+            bool isActiveMod = mod.Equals(this.ActiveMod);
+
+            this.TracingService.TraceInfo(
+                $"Deleting mod '{mod.ToTraceableString()}' for '{this.Campaign}'. isActiveMod = '{isActiveMod}'."
+            );
+
+            if (isActiveMod)
             {
                 this.ClearCampaignDirectory();
                 this.ActiveMod = null;

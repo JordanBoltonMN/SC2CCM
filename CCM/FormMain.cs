@@ -169,7 +169,9 @@ namespace Starcraft_Mod_Manager
             }
             else if (!mods.Contains(modDeletedEventArgs.Mod))
             {
-                this.TracingService.TraceError($"Unexpected ModDeletedEventArgs Mod '{modDeletedEventArgs.Mod}'.");
+                this.TracingService.TraceError(
+                    $"Unexpected ModDeletedEventArgs Mod '{modDeletedEventArgs.Mod.ToTraceableString()}'."
+                );
                 return;
             }
             else
@@ -299,6 +301,7 @@ namespace Starcraft_Mod_Manager
         {
             // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
             this.RichTextBoxTracingService.TracingLevelThreshold = tracingLevel;
+            this.logVerbosityDropdown.SelectedItem = tracingLevel.ToString();
             this.logBox.Visible = tracingLevel != TracingLevel.Off;
         }
 
@@ -474,6 +477,8 @@ namespace Starcraft_Mod_Manager
 
         private async Task UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
         {
+            this.TracingService.TraceDebug($"Unzipping {zipFilePaths}");
+
             foreach (string zipFilePath in zipFilePaths)
             {
                 if (
@@ -525,6 +530,9 @@ namespace Starcraft_Mod_Manager
                     this.progressBar.Visible = false;
 
                     modsForCampaign.Add(modFromZip);
+
+                    this.TracingService.TraceInfo($"Successfully unzipped {modFromZip.ToTraceableString()}.");
+
                     this.RefreshAvailableModsForModUserControls();
                     this.PromptToActivateMod(modFromZip);
                 }

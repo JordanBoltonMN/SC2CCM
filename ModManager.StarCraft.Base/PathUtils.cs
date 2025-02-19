@@ -45,6 +45,8 @@ namespace ModManager.StarCraft.Base
             out string filePath
         )
         {
+            this.TracingService.TraceDebug($"Attempting to find '{fileName}' in '{directory}'.");
+
             try
             {
                 foreach (string candidate in Directory.GetFiles(directory))
