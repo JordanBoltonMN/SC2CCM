@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ModManager.StarCraft.Base.Tracing
+﻿namespace ModManager.StarCraft.Base.Tracing
 {
     public enum TracingLevel
     {
-        Debug = 1,
-        Warning,
-        Error,
+        Error = 1, // Critical errors only
+        Warning = 2, // Warnings and errors
+        Info = 3, // General information, warnings, and errors
+        Debug = 4, // Debug-level messages (most detailed)
+        Off = 5, // No tracing
     }
 }

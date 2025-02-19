@@ -26,9 +26,9 @@ namespace ModManager.StarCraft.Services.Tracing
             this.TraceMessageOnAll(level, message);
         }
 
-        public void TraceDebug(string message)
+        public void TraceError(string message)
         {
-            this.TraceMessageOnAll(TracingLevel.Debug, message);
+            this.TraceMessageOnAll(TracingLevel.Error, message);
         }
 
         public void TraceWarning(string message)
@@ -36,9 +36,14 @@ namespace ModManager.StarCraft.Services.Tracing
             this.TraceMessageOnAll(TracingLevel.Warning, message);
         }
 
-        public void TraceError(string message)
+        public void TraceInfo(string message)
         {
-            this.TraceMessageOnAll(TracingLevel.Error, message);
+            this.TraceMessageOnAll(TracingLevel.Info, message);
+        }
+
+        public void TraceDebug(string message)
+        {
+            this.TraceMessageOnAll(TracingLevel.Debug, message);
         }
 
         public void Register(ITracingService tracingService)

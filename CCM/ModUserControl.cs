@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
+using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace Starcraft_Mod_Manager

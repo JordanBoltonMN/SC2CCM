@@ -36,6 +36,8 @@
             this.logBox = new System.Windows.Forms.RichTextBox();
             this.selectFolderDialogue = new System.Windows.Forms.OpenFileDialog();
             this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.logVerbosityDropdown = new System.Windows.Forms.ComboBox();
+            this.logVerbosityDropdownLabel = new System.Windows.Forms.Label();
             this.ncoModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.lotvModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.hotsModUserControl = new Starcraft_Mod_Manager.ModUserControl();
@@ -80,9 +82,9 @@
             // 
             // logBox
             // 
-            this.logBox.Location = new System.Drawing.Point(5, 351);
+            this.logBox.Location = new System.Drawing.Point(5, 404);
             this.logBox.Name = "logBox";
-            this.logBox.Size = new System.Drawing.Size(778, 98);
+            this.logBox.Size = new System.Drawing.Size(778, 122);
             this.logBox.TabIndex = 22;
             this.logBox.Text = "";
             this.logBox.WordWrap = false;
@@ -93,11 +95,34 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(5, 455);
+            this.progressBar.Location = new System.Drawing.Point(5, 532);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(778, 23);
             this.progressBar.TabIndex = 29;
             this.progressBar.Visible = false;
+            // 
+            // logVerbosityDropdown
+            // 
+            this.logVerbosityDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.logVerbosityDropdown.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logVerbosityDropdown.FormattingEnabled = true;
+            this.logVerbosityDropdown.Location = new System.Drawing.Point(5, 377);
+            this.logVerbosityDropdown.Name = "logVerbosityDropdown";
+            this.logVerbosityDropdown.Size = new System.Drawing.Size(188, 21);
+            this.logVerbosityDropdown.TabIndex = 30;
+            // 
+            // logVerbosityDropdownLabel
+            // 
+            this.logVerbosityDropdownLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.logVerbosityDropdownLabel.AutoSize = true;
+            this.logVerbosityDropdownLabel.BackColor = System.Drawing.SystemColors.Control;
+            this.logVerbosityDropdownLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logVerbosityDropdownLabel.Location = new System.Drawing.Point(12, 361);
+            this.logVerbosityDropdownLabel.Name = "logVerbosityDropdownLabel";
+            this.logVerbosityDropdownLabel.Size = new System.Drawing.Size(71, 13);
+            this.logVerbosityDropdownLabel.TabIndex = 31;
+            this.logVerbosityDropdownLabel.Text = "Log Verbosity";
             // 
             // ncoModUserControl
             // 
@@ -134,7 +159,9 @@
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(788, 484);
+            this.ClientSize = new System.Drawing.Size(788, 562);
+            this.Controls.Add(this.logVerbosityDropdownLabel);
+            this.Controls.Add(this.logVerbosityDropdown);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.ncoModUserControl);
             this.Controls.Add(this.lotvModUserControl);
@@ -156,6 +183,7 @@
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragOver);
             ((System.ComponentModel.ISupportInitialize)(this.importPicturebox)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -171,6 +199,8 @@
         private ModUserControl lotvModUserControl;
         private ModUserControl ncoModUserControl;
         private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.ComboBox logVerbosityDropdown;
+        private System.Windows.Forms.Label logVerbosityDropdownLabel;
     }
 }
 

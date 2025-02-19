@@ -32,9 +32,9 @@ namespace ModManager.StarCraft.Base.Tracing
             this.EmitMessageToFile(level, message);
         }
 
-        public void TraceDebug(string message)
+        public void TraceError(string message)
         {
-            this.EmitMessageToFile(TracingLevel.Debug, message);
+            this.EmitMessageToFile(TracingLevel.Error, message);
         }
 
         public void TraceWarning(string message)
@@ -42,17 +42,21 @@ namespace ModManager.StarCraft.Base.Tracing
             this.EmitMessageToFile(TracingLevel.Warning, message);
         }
 
-        public void TraceError(string message)
+        public void TraceInfo(string message)
         {
-            this.EmitMessageToFile(TracingLevel.Error, message);
+            this.EmitMessageToFile(TracingLevel.Info, message);
+        }
+
+        public void TraceDebug(string message)
+        {
+            this.EmitMessageToFile(TracingLevel.Debug, message);
         }
 
         private void EmitMessageToFile(TracingLevel level, string message)
         {
             lock (this.LockObject)
             {
-                string logEntry =
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {this.GetTracingLevelPrefix(level)} {message}";
+                string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] - {level} - {message}";
 
                 long logWriteSizeInBytes = Encoding.UTF8.GetByteCount(message);
                 long fileSizeIfLogWritten = this.CurrentFileSizeInBytes + logWriteSizeInBytes;
@@ -98,24 +102,6 @@ namespace ModManager.StarCraft.Base.Tracing
 
             this.OutputWriter = new StreamWriter(this.CurrentOutputFilePath, append: false);
             this.CurrentFileSizeInBytes = 0;
-        }
-
-        private string GetTracingLevelPrefix(TracingLevel tracingLevel)
-        {
-            switch (tracingLevel)
-            {
-                case TracingLevel.Debug:
-                    return "DEBUG";
-
-                case TracingLevel.Warning:
-                    return "WARNING";
-
-                case TracingLevel.Error:
-                    return "ERROR";
-
-                default:
-                    return "UNKNOWN";
-            }
         }
 
         public void Dispose()

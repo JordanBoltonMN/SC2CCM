@@ -18,9 +18,9 @@ namespace Starcraft_Mod_Manager
             this.AppendMessageToRichTextBox(level, message);
         }
 
-        public void TraceDebug(string message)
+        public void TraceError(string message)
         {
-            this.AppendMessageToRichTextBox(TracingLevel.Debug, message);
+            this.AppendMessageToRichTextBox(TracingLevel.Error, message);
         }
 
         public void TraceWarning(string message)
@@ -28,34 +28,21 @@ namespace Starcraft_Mod_Manager
             this.AppendMessageToRichTextBox(TracingLevel.Warning, message);
         }
 
-        public void TraceError(string message)
+        public void TraceInfo(string message)
         {
-            this.AppendMessageToRichTextBox(TracingLevel.Error, message);
+            this.AppendMessageToRichTextBox(TracingLevel.Info, message);
+        }
+
+        public void TraceDebug(string message)
+        {
+            this.AppendMessageToRichTextBox(TracingLevel.Debug, message);
         }
 
         private void AppendMessageToRichTextBox(TracingLevel level, string message)
         {
-            this.RichTextBox.AppendText($"{GetTracingLevelPrefix(level)} {message}{Environment.NewLine}");
+            this.RichTextBox.AppendText($"{level}: {message}{Environment.NewLine}");
             this.RichTextBox.SelectionStart = this.RichTextBox.Text.Length;
             this.RichTextBox.ScrollToCaret();
-        }
-
-        private string GetTracingLevelPrefix(TracingLevel level)
-        {
-            switch (level)
-            {
-                case TracingLevel.Debug:
-                    return "DEBUG";
-
-                case TracingLevel.Warning:
-                    return "WARNING";
-
-                case TracingLevel.Error:
-                    return "ERROR";
-
-                default:
-                    return "UNKNOWN";
-            }
         }
 
         private RichTextBox RichTextBox { get; }

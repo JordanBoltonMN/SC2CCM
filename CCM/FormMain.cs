@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
+using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace Starcraft_Mod_Manager
@@ -27,6 +28,8 @@ namespace Starcraft_Mod_Manager
         public FormMain(ITracingService tracingService)
         {
             InitializeComponent();
+
+            this.logVerbosityDropdown.Items.AddRange(Enum.GetNames(typeof(TracingLevel)));
 
             this.TracingService = new CompositeTracingService(
                 new ITracingService[] { tracingService, new RichTextBoxTracingService(this.logBox) }
