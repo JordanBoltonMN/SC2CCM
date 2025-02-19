@@ -109,10 +109,6 @@
     <Content Include="SC2ManagerLogo_3.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ModManagement.Services.StarCraft\ModManager.StarCraft.Services.csproj">
-      <Project>{dcdd023a-e03d-4315-a5b4-1f8443621a58}</Project>
-      <Name>ModManager.StarCraft.Services</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ModManager.StarCraft.Base\ModManager.StarCraft.Base.csproj">
       <Project>{aff2e91d-7789-4c51-8854-106c3890309c}</Project>
       <Name>ModManager.StarCraft.Base</Name>
