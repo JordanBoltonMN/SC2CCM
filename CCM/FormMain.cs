@@ -25,10 +25,7 @@ namespace Starcraft_Mod_Manager
 
         public FormMain(ITracingService tracingService)
         {
-            // Setting up form components.
-
             InitializeComponent();
-            this.logVerbosityDropdown.Items.AddRange(Enum.GetNames(typeof(TracingLevel)));
 
             // Setting up local state variables.
 
@@ -44,6 +41,17 @@ namespace Starcraft_Mod_Manager
             );
 
             this.ZipUtils = new ZipUtils(this.TracingService);
+
+            this.logVerbosityDropdown.Items.AddRange(
+                new string[]
+                {
+                    TracingLevel.Debug.ToString(),
+                    TracingLevel.Info.ToString(),
+                    TracingLevel.Warning.ToString(),
+                    TracingLevel.Error.ToString(),
+                }
+            );
+            this.SetTracingLevel(TracingLevel.Info);
         }
 
         private ITracingService TracingService { get; }
@@ -200,9 +208,7 @@ namespace Starcraft_Mod_Manager
                 return;
             }
 
-            // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
-            this.RichTextBoxTracingService.TracingLevelThreshold = selectedTracingLevel;
-            this.logBox.Visible = selectedTracingLevel != TracingLevel.Off;
+            this.SetTracingLevel(selectedTracingLevel);
         }
 
         // Private
@@ -287,6 +293,13 @@ namespace Starcraft_Mod_Manager
             }
 
             return pathForStarcraft2Exe;
+        }
+
+        private void SetTracingLevel(TracingLevel tracingLevel)
+        {
+            // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
+            this.RichTextBoxTracingService.TracingLevelThreshold = tracingLevel;
+            this.logBox.Visible = tracingLevel != TracingLevel.Off;
         }
 
         // Some mods contain dependencies which are either files or directories that end with ".SC2Mod".

@@ -32,12 +32,12 @@
             this.importButton = new System.Windows.Forms.Button();
             this.installButton = new System.Windows.Forms.Button();
             this.findSC2Dialogue = new System.Windows.Forms.OpenFileDialog();
-            this.importPicturebox = new System.Windows.Forms.PictureBox();
             this.logBox = new System.Windows.Forms.RichTextBox();
             this.selectFolderDialogue = new System.Windows.Forms.OpenFileDialog();
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.logVerbosityDropdown = new System.Windows.Forms.ComboBox();
             this.logVerbosityDropdownLabel = new System.Windows.Forms.Label();
+            this.importPicturebox = new System.Windows.Forms.PictureBox();
             this.ncoModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.lotvModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.hotsModUserControl = new Starcraft_Mod_Manager.ModUserControl();
@@ -47,19 +47,20 @@
             // 
             // importButton
             // 
-            this.importButton.Location = new System.Drawing.Point(693, 288);
+            this.importButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.importButton.Location = new System.Drawing.Point(859, 353);
             this.importButton.Name = "importButton";
-            this.importButton.Size = new System.Drawing.Size(90, 60);
+            this.importButton.Size = new System.Drawing.Size(190, 60);
             this.importButton.TabIndex = 19;
-            this.importButton.Text = "Select\r\nZip to\r\nImport";
+            this.importButton.Text = "Click to select Zip file to Import";
             this.importButton.UseVisualStyleBackColor = true;
             this.importButton.Click += new System.EventHandler(this.importButton_Click);
             // 
             // installButton
             // 
-            this.installButton.Location = new System.Drawing.Point(593, 288);
+            this.installButton.Location = new System.Drawing.Point(859, 419);
             this.installButton.Name = "installButton";
-            this.installButton.Size = new System.Drawing.Size(90, 60);
+            this.installButton.Size = new System.Drawing.Size(190, 60);
             this.installButton.TabIndex = 20;
             this.installButton.Text = "Refresh";
             this.installButton.UseVisualStyleBackColor = true;
@@ -69,22 +70,12 @@
             // 
             this.findSC2Dialogue.FileName = "StarCraft II.exe";
             // 
-            // importPicturebox
-            // 
-            this.importPicturebox.BackColor = System.Drawing.SystemColors.Control;
-            this.importPicturebox.Image = ((System.Drawing.Image)(resources.GetObject("importPicturebox.Image")));
-            this.importPicturebox.Location = new System.Drawing.Point(5, 288);
-            this.importPicturebox.Margin = new System.Windows.Forms.Padding(0);
-            this.importPicturebox.Name = "importPicturebox";
-            this.importPicturebox.Size = new System.Drawing.Size(582, 60);
-            this.importPicturebox.TabIndex = 21;
-            this.importPicturebox.TabStop = false;
-            // 
             // logBox
             // 
-            this.logBox.Location = new System.Drawing.Point(5, 404);
+            this.logBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logBox.Location = new System.Drawing.Point(22, 357);
             this.logBox.Name = "logBox";
-            this.logBox.Size = new System.Drawing.Size(778, 122);
+            this.logBox.Size = new System.Drawing.Size(824, 122);
             this.logBox.TabIndex = 22;
             this.logBox.Text = "";
             this.logBox.WordWrap = false;
@@ -95,20 +86,25 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(5, 532);
+            this.progressBar.Location = new System.Drawing.Point(22, 485);
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(778, 23);
+            this.progressBar.Size = new System.Drawing.Size(1027, 23);
+            this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.TabIndex = 29;
             this.progressBar.Visible = false;
             // 
             // logVerbosityDropdown
             // 
+            this.logVerbosityDropdown.BackColor = System.Drawing.Color.Black;
             this.logVerbosityDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.logVerbosityDropdown.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logVerbosityDropdown.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logVerbosityDropdown.ForeColor = System.Drawing.Color.LightGray;
             this.logVerbosityDropdown.FormattingEnabled = true;
-            this.logVerbosityDropdown.Location = new System.Drawing.Point(5, 377);
+            this.logVerbosityDropdown.ItemHeight = 16;
+            this.logVerbosityDropdown.Location = new System.Drawing.Point(22, 330);
+            this.logVerbosityDropdown.Margin = new System.Windows.Forms.Padding(0);
             this.logVerbosityDropdown.Name = "logVerbosityDropdown";
-            this.logVerbosityDropdown.Size = new System.Drawing.Size(188, 21);
+            this.logVerbosityDropdown.Size = new System.Drawing.Size(188, 24);
             this.logVerbosityDropdown.TabIndex = 30;
             this.logVerbosityDropdown.SelectedIndexChanged += new System.EventHandler(this.logVerbosityDropdown_SelectedIndexChanged);
             // 
@@ -117,39 +113,64 @@
             this.logVerbosityDropdownLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.logVerbosityDropdownLabel.AutoSize = true;
-            this.logVerbosityDropdownLabel.BackColor = System.Drawing.SystemColors.Control;
-            this.logVerbosityDropdownLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.logVerbosityDropdownLabel.Location = new System.Drawing.Point(12, 361);
+            this.logVerbosityDropdownLabel.BackColor = System.Drawing.Color.Transparent;
+            this.logVerbosityDropdownLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logVerbosityDropdownLabel.ForeColor = System.Drawing.Color.LightGray;
+            this.logVerbosityDropdownLabel.Location = new System.Drawing.Point(19, 304);
+            this.logVerbosityDropdownLabel.Margin = new System.Windows.Forms.Padding(10, 5, 10, 0);
             this.logVerbosityDropdownLabel.Name = "logVerbosityDropdownLabel";
-            this.logVerbosityDropdownLabel.Size = new System.Drawing.Size(71, 13);
+            this.logVerbosityDropdownLabel.Padding = new System.Windows.Forms.Padding(5);
+            this.logVerbosityDropdownLabel.Size = new System.Drawing.Size(100, 26);
             this.logVerbosityDropdownLabel.TabIndex = 31;
             this.logVerbosityDropdownLabel.Text = "Log Verbosity";
+            this.logVerbosityDropdownLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // importPicturebox
+            // 
+            this.importPicturebox.BackColor = System.Drawing.SystemColors.Control;
+            this.importPicturebox.Image = ((System.Drawing.Image)(resources.GetObject("importPicturebox.Image")));
+            this.importPicturebox.Location = new System.Drawing.Point(860, 14);
+            this.importPicturebox.Margin = new System.Windows.Forms.Padding(10, 5, 10, 5);
+            this.importPicturebox.Name = "importPicturebox";
+            this.importPicturebox.Padding = new System.Windows.Forms.Padding(5);
+            this.importPicturebox.Size = new System.Drawing.Size(190, 280);
+            this.importPicturebox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.importPicturebox.TabIndex = 21;
+            this.importPicturebox.TabStop = false;
             // 
             // ncoModUserControl
             // 
-            this.ncoModUserControl.Location = new System.Drawing.Point(593, 5);
+            this.ncoModUserControl.Location = new System.Drawing.Point(649, 14);
+            this.ncoModUserControl.Margin = new System.Windows.Forms.Padding(10, 5, 10, 5);
             this.ncoModUserControl.Name = "ncoModUserControl";
+            this.ncoModUserControl.Padding = new System.Windows.Forms.Padding(5);
             this.ncoModUserControl.Size = new System.Drawing.Size(190, 280);
             this.ncoModUserControl.TabIndex = 28;
             // 
             // lotvModUserControl
             // 
-            this.lotvModUserControl.Location = new System.Drawing.Point(397, 5);
+            this.lotvModUserControl.Location = new System.Drawing.Point(439, 14);
+            this.lotvModUserControl.Margin = new System.Windows.Forms.Padding(10, 5, 10, 5);
             this.lotvModUserControl.Name = "lotvModUserControl";
+            this.lotvModUserControl.Padding = new System.Windows.Forms.Padding(5);
             this.lotvModUserControl.Size = new System.Drawing.Size(190, 280);
             this.lotvModUserControl.TabIndex = 27;
             // 
             // hotsModUserControl
             // 
-            this.hotsModUserControl.Location = new System.Drawing.Point(201, 5);
+            this.hotsModUserControl.Location = new System.Drawing.Point(229, 14);
+            this.hotsModUserControl.Margin = new System.Windows.Forms.Padding(10, 5, 10, 5);
             this.hotsModUserControl.Name = "hotsModUserControl";
+            this.hotsModUserControl.Padding = new System.Windows.Forms.Padding(5);
             this.hotsModUserControl.Size = new System.Drawing.Size(190, 280);
             this.hotsModUserControl.TabIndex = 26;
             // 
             // wolModUserControl
             // 
-            this.wolModUserControl.Location = new System.Drawing.Point(5, 5);
+            this.wolModUserControl.Location = new System.Drawing.Point(19, 14);
+            this.wolModUserControl.Margin = new System.Windows.Forms.Padding(10, 5, 10, 5);
             this.wolModUserControl.Name = "wolModUserControl";
+            this.wolModUserControl.Padding = new System.Windows.Forms.Padding(5);
             this.wolModUserControl.Size = new System.Drawing.Size(190, 280);
             this.wolModUserControl.TabIndex = 25;
             // 
@@ -160,7 +181,7 @@
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(788, 562);
+            this.ClientSize = new System.Drawing.Size(1069, 516);
             this.Controls.Add(this.logVerbosityDropdownLabel);
             this.Controls.Add(this.logVerbosityDropdown);
             this.Controls.Add(this.progressBar);
@@ -192,7 +213,6 @@
         private System.Windows.Forms.Button importButton;
         private System.Windows.Forms.Button installButton;
         private System.Windows.Forms.OpenFileDialog findSC2Dialogue;
-        private System.Windows.Forms.PictureBox importPicturebox;
         private System.Windows.Forms.RichTextBox logBox;
         private System.Windows.Forms.OpenFileDialog selectFolderDialogue;
         private ModUserControl wolModUserControl;
@@ -202,6 +222,7 @@
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.ComboBox logVerbosityDropdown;
         private System.Windows.Forms.Label logVerbosityDropdownLabel;
+        private System.Windows.Forms.PictureBox importPicturebox;
     }
 }
 
