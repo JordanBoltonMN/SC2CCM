@@ -52,7 +52,7 @@
             this.importButton.Name = "importButton";
             this.importButton.Size = new System.Drawing.Size(190, 60);
             this.importButton.TabIndex = 19;
-            this.importButton.Text = "Click to select Zip file to Import";
+            this.importButton.Text = "Click to import Zip file";
             this.importButton.UseVisualStyleBackColor = true;
             this.importButton.Click += new System.EventHandler(this.importButton_Click);
             // 
