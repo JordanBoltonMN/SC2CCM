@@ -110,6 +110,7 @@
             this.logVerbosityDropdown.Name = "logVerbosityDropdown";
             this.logVerbosityDropdown.Size = new System.Drawing.Size(188, 21);
             this.logVerbosityDropdown.TabIndex = 30;
+            this.logVerbosityDropdown.SelectedIndexChanged += new System.EventHandler(this.logVerbosityDropdown_SelectedIndexChanged);
             // 
             // logVerbosityDropdownLabel
             // 

@@ -23,16 +23,19 @@ namespace Starcraft_Mod_Manager
             Campaign.NCO,
         };
 
-        Dictionary<Campaign, List<Mod>> modsByCampaign = new Dictionary<Campaign, List<Mod>>();
-
         public FormMain(ITracingService tracingService)
         {
-            InitializeComponent();
+            // Setting up form components.
 
+            InitializeComponent();
             this.logVerbosityDropdown.Items.AddRange(Enum.GetNames(typeof(TracingLevel)));
 
+            // Setting up local state variables.
+
+            this.RichTextBoxTracingService = new RichTextBoxTracingService(this.logBox, TracingLevel.Warning);
+
             this.TracingService = new CompositeTracingService(
-                new ITracingService[] { tracingService, new RichTextBoxTracingService(this.logBox) }
+                new ITracingService[] { tracingService, RichTextBoxTracingService }
             );
 
             this.PathUtils = new PathUtils(
@@ -46,6 +49,8 @@ namespace Starcraft_Mod_Manager
         private ITracingService TracingService { get; }
         private PathUtils PathUtils { get; }
         private ZipUtils ZipUtils { get; }
+        private RichTextBoxTracingService RichTextBoxTracingService { get; }
+        private Dictionary<Campaign, List<Mod>> ModsByCampaign { get; set; }
 
         private IEnumerable<ModUserControl> ModUserControls =>
             CampaignsWithModUserControl.Select(campaign => this.GetModUserControlFor(campaign));
@@ -70,7 +75,7 @@ namespace Starcraft_Mod_Manager
                 modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(on_modDeleted);
             }
 
-            this.modsByCampaign = GetCustomModsByCampaign();
+            this.ModsByCampaign = GetCustomModsByCampaign();
             this.RefreshAvailableModsForModUserControls();
 
             foreach (ModUserControl modUserControl in this.ModUserControls)
@@ -101,6 +106,32 @@ namespace Starcraft_Mod_Manager
             }
         }
 
+        private void SC2CCM_DragEnter(object sender, DragEventArgs e)
+        {
+            if (this.TryGetDraggedFileName(e, out string fileName))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                this.TracingService.TraceDebug($"Drag Enter with fileName '{fileName}' is invalid.");
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void SC2CCM_DragOver(object sender, DragEventArgs e)
+        {
+            if (this.TryGetDraggedFileName(e, out string fileName))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+                this.TracingService.TraceDebug($"Drag Enter with fileName '{fileName}' is invalid.");
+            }
+        }
+
         private async void SC2CCM_DragDrop(object sender, DragEventArgs e)
         {
             List<string> zipFilePaths = new List<string>();
@@ -121,7 +152,7 @@ namespace Starcraft_Mod_Manager
 
         private void on_modDeleted(object sender, ModDeletedEventArgs modDeletedEventArgs)
         {
-            if (!modsByCampaign.TryGetValue(modDeletedEventArgs.Campaign, out List<Mod> mods))
+            if (!this.ModsByCampaign.TryGetValue(modDeletedEventArgs.Campaign, out List<Mod> mods))
             {
                 this.TracingService.TraceError(
                     $"Unexpected ModDeletedEventArgs Campaign '{modDeletedEventArgs.Campaign}'."
@@ -155,29 +186,23 @@ namespace Starcraft_Mod_Manager
             SC2MM_Shown(null, null);
         }
 
-        private void SC2CCM_DragEnter(object sender, DragEventArgs e)
+        private void logVerbosityDropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (this.TryGetDraggedFileName(e, out string filename))
+            if (
+                !(this.logVerbosityDropdown.SelectedItem is string selectedItem)
+                || !Enum.TryParse(selectedItem, out TracingLevel selectedTracingLevel)
+            )
             {
-                e.Effect = DragDropEffects.Move;
-            }
-            else
-            {
-                this.TracingService.TraceDebug($"Drag Enter with fileName '{filename}' is invalid.");
-                e.Effect = DragDropEffects.None;
-            }
-        }
+                this.TracingService.TraceError(
+                    $"{nameof(this.logVerbosityDropdown_SelectedIndexChanged)} could not parse selectedItem."
+                );
 
-        private void SC2CCM_DragOver(object sender, DragEventArgs e)
-        {
-            if (this.TryGetDraggedFileName(e, out string _))
-            {
-                e.Effect = DragDropEffects.Move;
+                return;
             }
-            else
-            {
-                e.Effect = DragDropEffects.None;
-            }
+
+            // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
+            this.RichTextBoxTracingService.TracingLevelThreshold = selectedTracingLevel;
+            this.logBox.Visible = selectedTracingLevel != TracingLevel.Off;
         }
 
         // Private
@@ -423,7 +448,7 @@ namespace Starcraft_Mod_Manager
         {
             foreach (ModUserControl modUserControl in this.ModUserControls)
             {
-                if (this.modsByCampaign.TryGetValue(modUserControl.Campaign, out List<Mod> mods))
+                if (this.ModsByCampaign.TryGetValue(modUserControl.Campaign, out List<Mod> mods))
                 {
                     modUserControl.SetAvaialbleMods(mods);
                 }
@@ -451,7 +476,7 @@ namespace Starcraft_Mod_Manager
                 {
                     continue;
                 }
-                else if (!this.modsByCampaign.TryGetValue(modMetadata.Campaign, out List<Mod> modsForCampaign))
+                else if (!this.ModsByCampaign.TryGetValue(modMetadata.Campaign, out List<Mod> modsForCampaign))
                 {
                     this.TracingService.TraceError($"Unknown Campaign '{modMetadata.Campaign}'.");
 
