@@ -49,7 +49,7 @@ namespace ModManager.StarCraft.Base
 
             try
             {
-                foreach (string candidate in Directory.GetFiles(directory))
+                foreach (string candidate in Directory.EnumerateFiles(directory))
                 {
                     if (Path.GetFileName(candidate).Equals(fileName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -58,7 +58,7 @@ namespace ModManager.StarCraft.Base
                     }
                 }
 
-                foreach (string subDirectory in Directory.GetDirectories(directory))
+                foreach (string subDirectory in Directory.EnumerateDirectories(directory))
                 {
                     if (
                         shouldExpandDirectory(subDirectory)
@@ -84,17 +84,33 @@ namespace ModManager.StarCraft.Base
             return false;
         }
 
-        public void CopyFilesAndFolders(string sourcePath, string targetPath)
+        public void CopyFilesAndFolders(string sourceDirectory, string targetDirectory)
         {
-            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+            foreach (
+                string sourceSubDirectory in Directory.EnumerateDirectories(
+                    sourceDirectory,
+                    "*",
+                    SearchOption.AllDirectories
+                )
+            )
             {
-                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
-                this.TracingService.TraceDebug($"Created directory at '{dirPath.Replace(sourcePath, targetPath)}'");
+                string targetSubDirectory = sourceSubDirectory.Replace(sourceDirectory, targetDirectory);
+
+                if (!Directory.Exists(targetSubDirectory))
+                {
+                    this.TracingService.TraceDebug($"Creating subdirectory '{targetSubDirectory}'.");
+                    Directory.CreateDirectory(sourceSubDirectory.Replace(sourceDirectory, targetDirectory));
+                }
             }
 
-            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            foreach (
+                string sourceFilePath in Directory.EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories)
+            )
             {
-                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+                string targetFilePath = sourceFilePath.Replace(sourceDirectory, targetDirectory);
+                this.TracingService.TraceDebug($"Copying '{sourceFilePath}' to '{targetFilePath}'.");
+
+                File.Copy(sourceFilePath, targetFilePath, overwrite: true);
             }
         }
 

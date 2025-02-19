@@ -311,7 +311,7 @@ namespace Starcraft_Mod_Manager
         {
             // Process files
             foreach (
-                string filePath in Directory.GetFiles(
+                string filePath in Directory.EnumerateFiles(
                     this.PathUtils.PathForCustomCampaigns,
                     "*.SC2Mod",
                     SearchOption.AllDirectories
@@ -346,7 +346,7 @@ namespace Starcraft_Mod_Manager
 
             // Process directories
             foreach (
-                string dirPath in Directory.GetDirectories(
+                string dirPath in Directory.EnumerateDirectories(
                     this.PathUtils.PathForCustomCampaigns,
                     "*.SC2Mod",
                     SearchOption.AllDirectories
@@ -389,7 +389,7 @@ namespace Starcraft_Mod_Manager
 
             // Search in each directory
             foreach (
-                string dir in Directory.GetDirectories(
+                string dir in Directory.EnumerateDirectories(
                     this.PathUtils.PathForCustomCampaigns,
                     "*",
                     SearchOption.TopDirectoryOnly
