@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
@@ -67,7 +69,7 @@ namespace ModManager.StarCraft.Base
         }
 
         // Iteratively extracts the zip to the destination.
-        public void ExtractZipFile(string zipFilePath, string destinationFolder)
+        public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<int> progress)
         {
             if (Directory.Exists(destinationFolder))
             {
@@ -79,38 +81,42 @@ namespace ModManager.StarCraft.Base
                 Directory.CreateDirectory(destinationFolder);
             }
 
-            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
+            await Task.Run(() =>
             {
+                using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
                 {
+                    int totalFiles = archive.Entries.Count;
+                    int processedFiles = 0;
+
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
-                        // Directories in the archive can show up as entries with empty Name
                         if (string.IsNullOrEmpty(entry.Name))
                         {
                             continue;
                         }
 
                         string destinationPath = Path.Combine(destinationFolder, entry.FullName);
-
                         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
 
                         using (Stream entryStream = entry.Open())
-                        {
-                            using (
-                                FileStream outputFileStream = new FileStream(
-                                    destinationPath,
-                                    FileMode.Create,
-                                    FileAccess.Write
-                                )
+                        using (
+                            FileStream outputFileStream = new FileStream(
+                                destinationPath,
+                                FileMode.Create,
+                                FileAccess.Write
                             )
-                            {
-                                entryStream.CopyTo(outputFileStream);
-                            }
+                        )
+                        {
+                            entryStream.CopyTo(outputFileStream);
                         }
+
+                        // Report progress
+                        processedFiles++;
+                        progress?.Report((processedFiles * 100) / totalFiles);
                     }
                 }
-            }
+            });
         }
     }
 }

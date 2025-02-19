@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
@@ -97,7 +98,7 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void SC2CCM_DragDrop(object sender, DragEventArgs e)
+        private async void SC2CCM_DragDrop(object sender, DragEventArgs e)
         {
             List<string> zipFilePaths = new List<string>();
 
@@ -112,7 +113,7 @@ namespace Starcraft_Mod_Manager
                 zipFilePaths.Add(filePath);
             }
 
-            UnzipToCustomCampaigns(zipFilePaths);
+            await UnzipToCustomCampaigns(zipFilePaths);
         }
 
         private void on_modDeleted(object sender, ModDeletedEventArgs modDeletedEventArgs)
@@ -135,13 +136,13 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void importButton_Click(object sender, EventArgs e)
+        private async void importButton_Click(object sender, EventArgs e)
         {
             selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
 
             if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
             {
-                this.UnzipToCustomCampaigns(selectFolderDialogue.FileNames.ToArray());
+                await this.UnzipToCustomCampaigns(selectFolderDialogue.FileNames.ToArray());
             }
         }
 
@@ -430,7 +431,7 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
+        private async Task UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
         {
             foreach (string zipFilePath in zipFilePaths)
             {
@@ -473,7 +474,14 @@ namespace Starcraft_Mod_Manager
                         continue;
                     }
 
-                    this.ZipUtils.ExtractZipFile(zipFilePath, modDirectoryPath);
+                    Progress<int> progress = new Progress<int>(value =>
+                    {
+                        this.progressBar.Value = value;
+                    });
+
+                    this.progressBar.Visible = true;
+                    await this.ZipUtils.ExtractZipFile(zipFilePath, modDirectoryPath, progress);
+                    this.progressBar.Visible = false;
 
                     modsForCampaign.Add(modFromZip);
                     this.RefreshAvailableModsForModUserControls();
@@ -506,5 +514,9 @@ namespace Starcraft_Mod_Manager
             fileName = null;
             return false;
         }
+
+        private void progressBar1_Click(object sender, EventArgs e) { }
+
+        private void label1_Click(object sender, EventArgs e) { }
     }
 }

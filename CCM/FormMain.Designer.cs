@@ -35,6 +35,7 @@
             this.importPicturebox = new System.Windows.Forms.PictureBox();
             this.logBox = new System.Windows.Forms.RichTextBox();
             this.selectFolderDialogue = new System.Windows.Forms.OpenFileDialog();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.ncoModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.lotvModUserControl = new Starcraft_Mod_Manager.ModUserControl();
             this.hotsModUserControl = new Starcraft_Mod_Manager.ModUserControl();
@@ -89,6 +90,15 @@
             // 
             this.selectFolderDialogue.Multiselect = true;
             // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(12, 362);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(778, 23);
+            this.progressBar.TabIndex = 29;
+            this.progressBar.Visible = false;
+            this.progressBar.Click += new System.EventHandler(this.progressBar1_Click);
+            // 
             // ncoModUserControl
             // 
             this.ncoModUserControl.Location = new System.Drawing.Point(600, 12);
@@ -122,7 +132,8 @@
             this.AllowDrop = true;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(802, 367);
+            this.ClientSize = new System.Drawing.Size(802, 392);
+            this.Controls.Add(this.progressBar);
             this.Controls.Add(this.ncoModUserControl);
             this.Controls.Add(this.lotvModUserControl);
             this.Controls.Add(this.hotsModUserControl);
@@ -135,13 +146,12 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "FormMain";
-            this.Text = "StarCraft II Custom Campaign Manager v1.03";
+            this.Text = "StarCraft II Custom Campaign Manager v1.04";
             this.Load += new System.EventHandler(this.SC2MM_Load);
             this.Shown += new System.EventHandler(this.SC2MM_Shown);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragEnter);
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragOver);
-            
             ((System.ComponentModel.ISupportInitialize)(this.importPicturebox)).EndInit();
             this.ResumeLayout(false);
 
@@ -158,6 +168,7 @@
         private ModUserControl hotsModUserControl;
         private ModUserControl lotvModUserControl;
         private ModUserControl ncoModUserControl;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
 
