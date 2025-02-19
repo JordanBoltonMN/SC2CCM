@@ -64,6 +64,7 @@
     <Compile Include="FormMain.Designer.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="ModDeletedEventArgs.cs" />
     <Compile Include="ModUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

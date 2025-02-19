@@ -63,6 +63,7 @@ namespace Starcraft_Mod_Manager
             foreach ((ModUserControl modUserControl, Campaign campaign) in userControlsAndCampaigns)
             {
                 modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
+                modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(on_modDeleted);
             }
 
             this.modsByCampaign = GetCustomModsByCampaign();
@@ -112,6 +113,26 @@ namespace Starcraft_Mod_Manager
             }
 
             UnzipToCustomCampaigns(zipFilePaths);
+        }
+
+        private void on_modDeleted(object sender, ModDeletedEventArgs modDeletedEventArgs)
+        {
+            if (!modsByCampaign.TryGetValue(modDeletedEventArgs.Campaign, out List<Mod> mods))
+            {
+                this.TracingService.TraceError(
+                    $"Unexpected ModDeletedEventArgs Campaign '{modDeletedEventArgs.Campaign}'."
+                );
+                return;
+            }
+            else if (!mods.Contains(modDeletedEventArgs.Mod))
+            {
+                this.TracingService.TraceError($"Unexpected ModDeletedEventArgs Mod '{modDeletedEventArgs.Mod}'.");
+                return;
+            }
+            else
+            {
+                mods.Remove(modDeletedEventArgs.Mod);
+            }
         }
 
         private void importButton_Click(object sender, EventArgs e)

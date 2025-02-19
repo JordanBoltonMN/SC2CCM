@@ -32,6 +32,8 @@ namespace Starcraft_Mod_Manager
             this.selectModTitle.Text = $"Select {campaign.ToAbbreviation()} campaign";
         }
 
+        public event EventHandler<ModDeletedEventArgs> OnModDeletion;
+
         // InitializeComponent properties
         public ITracingService TracingService { get; private set; }
         public PathUtils PathUtils { get; private set; }
@@ -61,7 +63,15 @@ namespace Starcraft_Mod_Manager
 
         private void deleteButton_Click(object sender, EventArgs e)
         {
-            this.DeleteSelectedMod();
+            Mod selectedMod = this.GetSelectedMod();
+
+            if (selectedMod is null)
+            {
+                return;
+            }
+
+            this.DeleteSelectedMod(selectedMod);
+            this.OnModDeletion(this, new ModDeletedEventArgs(this.Campaign, selectedMod));
         }
 
         private void restoreButton_Click(object sender, EventArgs e)
@@ -158,26 +168,24 @@ namespace Starcraft_Mod_Manager
             this.versionBox.Text = "N/A";
         }
 
-        private void DeleteSelectedMod()
+        private void DeleteSelectedMod(Mod mod)
         {
-            Mod selectedMod = this.GetSelectedMod();
-
-            if (!Prompter.AskYesNo($"Are you sure you want to delete '{selectedMod}'?"))
+            if (!Prompter.AskYesNo($"Are you sure you want to delete '{mod}'?"))
             {
                 return;
             }
 
-            if (selectedMod.Equals(this.ActiveMod))
+            if (mod.Equals(this.ActiveMod))
             {
                 this.ClearCampaignDirectory();
                 this.ActiveMod = null;
             }
 
             this.PathUtils.ClearDirectory(
-                PathUtils.GetImmediateSubdirectory(selectedMod.MetadataFilePath, PathUtils.PathForCustomCampaigns)
+                PathUtils.GetImmediateSubdirectory(mod.MetadataFilePath, PathUtils.PathForCustomCampaigns)
             );
 
-            this.modSelectDropdown.Items.Remove(selectedMod);
+            this.modSelectDropdown.Items.Remove(mod);
             this.SelectMod(mod: this.ActiveMod);
         }
 
