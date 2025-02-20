@@ -504,9 +504,13 @@ namespace Starcraft_Mod_Manager
                         continue;
                     }
 
-                    Progress<int> progress = new Progress<int>(value =>
+                    Progress<ZipProgress> progress = new Progress<ZipProgress>(zipProgress =>
                     {
-                        this.progressBar.Value = value;
+                        this.TracingService.TraceDebug(
+                            $"Extracting zip entry '{zipProgress.EntryName}' to '{zipProgress.DestinationPath}'."
+                        );
+
+                        this.progressBar.Value = 100 * zipProgress.NumProcessedFiles / zipProgress.TotalFiles;
                     });
 
                     this.progressBar.Visible = true;

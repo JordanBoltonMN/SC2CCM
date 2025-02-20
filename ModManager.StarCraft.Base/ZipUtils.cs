@@ -69,7 +69,7 @@ namespace ModManager.StarCraft.Base
         }
 
         // Iteratively extracts the zip to the destination.
-        public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<int> progress)
+        public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<ZipProgress> progress)
         {
             this.TracingService.TraceDebug($"Extracting zip '{zipFilePath}' to '{destinationFolder}'.");
 
@@ -86,7 +86,7 @@ namespace ModManager.StarCraft.Base
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
                 {
                     int totalFiles = archive.Entries.Count;
-                    int processedFiles = 0;
+                    int numFilesProcessed = 0;
 
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
@@ -97,8 +97,6 @@ namespace ModManager.StarCraft.Base
 
                         string destinationPath = Path.Combine(destinationFolder, entry.FullName);
                         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
-
-                        this.TracingService.TraceDebug($"Extracting zip entry '{entry.Name}' to '{destinationPath}'.");
 
                         using (Stream entryStream = entry.Open())
                         using (
@@ -112,9 +110,8 @@ namespace ModManager.StarCraft.Base
                             entryStream.CopyTo(outputFileStream);
                         }
 
-                        // Report progress
-                        processedFiles++;
-                        progress?.Report((processedFiles * 100) / totalFiles);
+                        numFilesProcessed++;
+                        progress.Report(new ZipProgress(totalFiles, numFilesProcessed, entry.Name, destinationPath));
                     }
                 }
             });

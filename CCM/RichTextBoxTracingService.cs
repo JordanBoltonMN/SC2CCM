@@ -94,8 +94,8 @@ namespace Starcraft_Mod_Manager
             }
 
             this.RichTextBox.AppendText($"{level}: {message}{Environment.NewLine}");
-            this.RichTextBox.SelectionStart = this.RichTextBox.Text.Length;
-            this.RichTextBox.ScrollToCaret();
+            // this.RichTextBox.SelectionStart = this.RichTextBox.Text.Length;
+            // this.RichTextBox.ScrollToCaret();
         }
 
         private void RefreshRichTextBox()
