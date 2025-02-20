@@ -33,6 +33,7 @@ namespace Starcraft_Mod_Manager
         }
 
         public event EventHandler<ModDeletedEventArgs> OnModDeletion;
+        public event EventHandler<ProgressUpdateEventArgs> OnProgressUpdate;
 
         // InitializeComponent properties
         public ITracingService TracingService { get; private set; }
@@ -141,16 +142,26 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void CopyModFiles(Mod mod)
+        private async void CopyModFiles(Mod mod)
         {
             this.TracingService.TraceDebug($"Copying files for '{mod.ToTraceableString()}' for '{this.Campaign}'.");
 
             this.ClearCampaignDirectory();
 
-            PathUtils.CopyFilesAndFolders(
+            Progress<IOProgress> progress = new Progress<IOProgress>(ioProgress =>
+            {
+                this.TracingService.TraceEvent(ioProgress.TraceEvent);
+                this.OnProgressUpdate(this, new ProgressUpdateEventArgs(visible: true, ioProgress));
+            });
+
+            await PathUtils.CopyFilesAndFolders(
                 Path.GetDirectoryName(mod.MetadataFilePath),
-                this.PathUtils.GetPathForCampaign(this.Campaign)
+                this.PathUtils.GetPathForCampaign(this.Campaign),
+                progress
             );
+
+            // Disable the progress bar after we're done copying.
+            this.OnProgressUpdate(this, ProgressUpdateEventArgs.InvisibleInstance);
         }
 
         private void RefreshActiveModText(Mod mod)

@@ -154,7 +154,7 @@ namespace ModManager.StarCraft.Base
             }
         }
 
-        public async void CopyFilesAndFolders(
+        public async Task CopyFilesAndFolders(
             string sourceDirectory,
             string targetDirectory,
             IProgress<IOProgress> progress
