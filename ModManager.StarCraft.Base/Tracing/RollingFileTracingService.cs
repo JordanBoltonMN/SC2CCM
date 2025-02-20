@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Windows.Forms;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base.Tracing
@@ -20,7 +22,7 @@ namespace ModManager.StarCraft.Base.Tracing
         // Configuration
         private string OutputDirectory { get; }
         private string OutputFileNamePrefix { get; }
-        private long MaxFileSizeBytes { get; } // e.g., 1_000_000 for ~1 MB
+        private long MaxFileSizeBytes { get; } // e.g., 100_000_000 for ~100 MB
 
         // State
         private readonly object LockObject = new object();
@@ -28,65 +30,14 @@ namespace ModManager.StarCraft.Base.Tracing
         private string CurrentOutputFilePath { get; set; }
         private long CurrentFileSizeInBytes { get; set; }
 
-        public void TraceMessage(
-            TracingLevel level,
-            string message,
-            [CallerFilePath] string callerFilePath = "",
-            [CallerMemberName] string callerMemberName = ""
-        )
-        {
-            this.EmitMessageToFile(level, message, callerFilePath, callerMemberName);
-        }
-
-        public void TraceError(
-            string message,
-            [CallerFilePath] string callerFilePath = "",
-            [CallerMemberName] string callerMemberName = ""
-        )
-        {
-            this.EmitMessageToFile(TracingLevel.Error, message, callerFilePath, callerMemberName);
-        }
-
-        public void TraceWarning(
-            string message,
-            [CallerFilePath] string callerFilePath = "",
-            [CallerMemberName] string callerMemberName = ""
-        )
-        {
-            this.EmitMessageToFile(TracingLevel.Warning, message, callerFilePath, callerMemberName);
-        }
-
-        public void TraceInfo(
-            string message,
-            [CallerFilePath] string callerFilePath = "",
-            [CallerMemberName] string callerMemberName = ""
-        )
-        {
-            this.EmitMessageToFile(TracingLevel.Info, message, callerFilePath, callerMemberName);
-        }
-
-        public void TraceDebug(
-            string message,
-            [CallerFilePath] string callerFilePath = "",
-            [CallerMemberName] string callerMemberName = ""
-        )
-        {
-            this.EmitMessageToFile(TracingLevel.Debug, message, callerFilePath, callerMemberName);
-        }
-
-        private void EmitMessageToFile(
-            TracingLevel level,
-            string message,
-            string callerFilePath,
-            string callerMemberName
-        )
+        public void TraceEvent(TraceEvent traceEvent)
         {
             lock (this.LockObject)
             {
                 string logEntry =
-                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {level} - {Path.GetFileNameWithoutExtension(callerFilePath)}/{callerMemberName} - {message}";
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {traceEvent.Level} - {traceEvent.Source} - {traceEvent.Message}";
 
-                long logWriteSizeInBytes = Encoding.UTF8.GetByteCount(message);
+                long logWriteSizeInBytes = Encoding.UTF8.GetByteCount(logEntry);
                 long fileSizeIfLogWritten = this.CurrentFileSizeInBytes + logWriteSizeInBytes;
 
                 if (fileSizeIfLogWritten >= this.MaxFileSizeBytes)
@@ -99,6 +50,52 @@ namespace ModManager.StarCraft.Base.Tracing
 
                 this.CurrentFileSizeInBytes = fileSizeIfLogWritten;
             }
+        }
+
+        public void TraceMessage(
+            TracingLevel level,
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            this.TraceEvent(new TraceEvent(message, level, callerFilePath, callerMemberName));
+        }
+
+        public void TraceError(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            this.TraceEvent(new TraceEvent(message, TracingLevel.Error, callerFilePath, callerMemberName));
+        }
+
+        public void TraceWarning(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            this.TraceEvent(new TraceEvent(message, TracingLevel.Warning, callerFilePath, callerMemberName));
+        }
+
+        public void TraceInfo(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            this.TraceEvent(new TraceEvent(message, TracingLevel.Info, callerFilePath, callerMemberName));
+        }
+
+        public void TraceDebug(
+            string message,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            this.TraceEvent(new TraceEvent(message, TracingLevel.Debug, callerFilePath, callerMemberName));
         }
 
         private void RollFile()

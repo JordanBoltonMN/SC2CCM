@@ -49,6 +49,7 @@
     <Compile Include="Enums\CommonPath.cs" />
     <Compile Include="ModMetadata.cs" />
     <Compile Include="Mod.cs" />
+    <Compile Include="IOProgress.cs" />
     <Compile Include="PathUtils.cs" />
     <Compile Include="Prompter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="Tracing\CompositeTracingService.cs" />
     <Compile Include="Tracing\ITracingService.cs" />
     <Compile Include="Tracing\RollingFileTracingService.cs" />
+    <Compile Include="Tracing\TraceEvent.cs" />
     <Compile Include="Tracing\TracingLevel.cs" />
     <Compile Include="ZipProgress.cs" />
     <Compile Include="ZipUtils.cs" />

@@ -21,7 +21,7 @@ namespace Starcraft_Mod_Manager
                     new RollingFileLogger(
                         Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "SCC",
-                        1024 * 1024 /* 1 megabyte */
+                        1024 * 1024 * 100 /* 100 megabyte */
                     )
                 )
             );

@@ -2,17 +2,17 @@
 {
     public readonly struct ZipProgress
     {
-        public ZipProgress(int totalFiles, int numProcessedFiles, string entryName, string destinationPath)
+        public ZipProgress(int numProcessedFiles, int numTotalFiles, string entryName, string destinationPath)
         {
-            this.TotalFiles = totalFiles;
             this.NumProcessedFiles = numProcessedFiles;
+            this.NumTotalFiles = numTotalFiles;
             this.EntryName = entryName;
             this.DestinationPath = destinationPath;
         }
 
-        public int TotalFiles { get; }
-
         public int NumProcessedFiles { get; }
+
+        public int NumTotalFiles { get; }
 
         public string EntryName { get; }
 

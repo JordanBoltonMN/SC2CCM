@@ -5,6 +5,8 @@ namespace ModManager.StarCraft.Services.Tracing
 {
     public interface ITracingService
     {
+        void TraceEvent(TraceEvent traceEvent);
+
         void TraceMessage(
             TracingLevel level,
             string message,

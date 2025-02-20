@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
@@ -69,7 +70,7 @@ namespace ModManager.StarCraft.Base
         }
 
         // Iteratively extracts the zip to the destination.
-        public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<ZipProgress> progress)
+        public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<IOProgress> progress)
         {
             this.TracingService.TraceDebug($"Extracting zip '{zipFilePath}' to '{destinationFolder}'.");
 
@@ -85,7 +86,7 @@ namespace ModManager.StarCraft.Base
                 using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
                 {
-                    int totalFiles = archive.Entries.Count;
+                    int numTotalFiles = archive.Entries.Count;
                     int numFilesProcessed = 0;
 
                     foreach (ZipArchiveEntry entry in archive.Entries)
@@ -111,7 +112,16 @@ namespace ModManager.StarCraft.Base
                         }
 
                         numFilesProcessed++;
-                        progress.Report(new ZipProgress(totalFiles, numFilesProcessed, entry.Name, destinationPath));
+                        progress.Report(
+                            new IOProgress(
+                                new TraceEvent(
+                                    $"Extracting zip entry '{entry.Name}' to '{destinationPath}'.",
+                                    Tracing.TracingLevel.Debug
+                                ),
+                                numProcessedItems: numFilesProcessed,
+                                numTotalItems: numTotalFiles
+                            )
+                        );
                     }
                 }
             });

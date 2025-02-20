@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using ModManager.StarCraft.Base.Enums;
+using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
@@ -149,6 +152,69 @@ namespace ModManager.StarCraft.Base
             {
                 this.TracingService.TraceWarning($"Failed to delete directory '{directory}'");
             }
+        }
+
+        public async void CopyFilesAndFolders(
+            string sourceDirectory,
+            string targetDirectory,
+            IProgress<IOProgress> progress
+        )
+        {
+            List<string> directoryPaths = Directory
+                .EnumerateDirectories(sourceDirectory, "*", SearchOption.AllDirectories)
+                .ToList();
+
+            List<string> filePaths = Directory
+                .EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories)
+                .ToList();
+
+            int numTotalItems = directoryPaths.Count + filePaths.Count;
+            int numItemsProcessed = 0;
+
+            if (numTotalItems == 0)
+            {
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                foreach (string sourceSubDirectory in directoryPaths)
+                {
+                    string targetSubDirectory = sourceSubDirectory.Replace(sourceDirectory, targetDirectory);
+
+                    if (!Directory.Exists(targetSubDirectory))
+                    {
+                        progress.Report(
+                            new IOProgress(
+                                new TraceEvent($"Creating subdirectory '{targetSubDirectory}'.", TracingLevel.Debug),
+                                numItemsProcessed,
+                                numTotalItems
+                            )
+                        );
+
+                        Directory.CreateDirectory(targetSubDirectory);
+                    }
+
+                    numItemsProcessed++;
+                }
+
+                foreach (string sourceFilePath in filePaths)
+                {
+                    string targetFilePath = sourceFilePath.Replace(sourceDirectory, targetDirectory);
+
+                    progress.Report(
+                        new IOProgress(
+                            new TraceEvent($"Copying '{sourceFilePath}' to '{targetFilePath}'.", TracingLevel.Debug),
+                            numItemsProcessed,
+                            numTotalItems
+                        )
+                    );
+
+                    File.Copy(sourceFilePath, targetFilePath, overwrite: true);
+
+                    numItemsProcessed++;
+                }
+            });
         }
 
         public void CopyFilesAndFolders(string sourceDirectory, string targetDirectory)

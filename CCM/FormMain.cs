@@ -10,11 +10,14 @@ using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.Enums;
 using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
+using Starcraft_Mod_Manager.Tracing;
 
 namespace Starcraft_Mod_Manager
 {
     public partial class FormMain : Form
     {
+        private static readonly Timer LogFlushTimer = new Timer();
+
         private static readonly Campaign[] CampaignsWithModUserControl = new Campaign[]
         {
             Campaign.WoL,
@@ -29,7 +32,14 @@ namespace Starcraft_Mod_Manager
 
             // Setting up local state variables.
 
-            this.RichTextBoxTracingService = new RichTextBoxTracingService(this.logBox, TracingLevel.Warning);
+            LogFlushTimer.Tick += this.on_tick;
+            LogFlushTimer.Interval = 100;
+
+            this.RichTextBoxTracingService = new RichTextBoxTracingService(
+                richTextBox: this.logBox,
+                tracingLevelThreshold: TracingLevel.Warning,
+                queueThreshold: 100
+            );
 
             this.TracingService = new CompositeTracingService(
                 new ITracingService[] { tracingService, RichTextBoxTracingService }
@@ -74,6 +84,8 @@ namespace Starcraft_Mod_Manager
 
         private void SC2MM_Shown(object sender, EventArgs e)
         {
+            LogFlushTimer.Start();
+
             IEnumerable<(ModUserControl modUserControl, Campaign campaign)> userControlsAndCampaigns =
                 CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
 
@@ -156,6 +168,11 @@ namespace Starcraft_Mod_Manager
             }
 
             await UnzipToCustomCampaigns(zipFilePaths);
+        }
+
+        private void on_tick(object sender, EventArgs myEventArgs)
+        {
+            this.RichTextBoxTracingService.Flush();
         }
 
         private void on_modDeleted(object sender, ModDeletedEventArgs modDeletedEventArgs)
@@ -344,7 +361,7 @@ namespace Starcraft_Mod_Manager
                 )
             )
             {
-                string directoryName = Path.GetDirectoryName(sourceDirectoryPath);
+                string directoryName = Path.GetFileName(sourceDirectoryPath);
                 string destinationDirectoryPath = Path.Combine(this.PathUtils.PathForMods, directoryName);
 
                 try
@@ -461,7 +478,7 @@ namespace Starcraft_Mod_Manager
 
         private async Task UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
         {
-            this.TracingService.TraceDebug($"Unzipping {zipFilePaths}");
+            this.TracingService.TraceDebug($"Unzipping [{(string.Join(", ", zipFilePaths))}]");
 
             foreach (string zipFilePath in zipFilePaths)
             {
@@ -489,9 +506,9 @@ namespace Starcraft_Mod_Manager
                     // Since the path is being derived from user data we need to sanitize it to only allow valid characters.
                     string modDirectoryPath = Path.Combine(
                         PathUtils.PathForCustomCampaigns,
-                        PathUtils.GetSanitizedPath(
-                            $"{modMetadata.Title} ({modMetadata.Version})",
-                            replacementCharacter: '-'
+                        Path.Combine(
+                            PathUtils.GetSanitizedPath(modMetadata.Title, '-'),
+                            PathUtils.GetSanitizedPath(modMetadata.Version, '-')
                         )
                     );
 
@@ -504,13 +521,10 @@ namespace Starcraft_Mod_Manager
                         continue;
                     }
 
-                    Progress<ZipProgress> progress = new Progress<ZipProgress>(zipProgress =>
+                    Progress<IOProgress> progress = new Progress<IOProgress>(ioProgress =>
                     {
-                        this.TracingService.TraceDebug(
-                            $"Extracting zip entry '{zipProgress.EntryName}' to '{zipProgress.DestinationPath}'."
-                        );
-
-                        this.progressBar.Value = 100 * zipProgress.NumProcessedFiles / zipProgress.TotalFiles;
+                        this.TracingService.TraceEvent(ioProgress.TraceEvent);
+                        this.progressBar.Value = ioProgress.PercentComplete;
                     });
 
                     this.progressBar.Visible = true;
