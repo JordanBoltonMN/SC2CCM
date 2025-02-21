@@ -36,21 +36,24 @@ namespace Starcraft_Mod_Manager
         public event EventHandler<ProgressUpdateEventArgs> OnProgressUpdate;
 
         // InitializeComponent properties
+
         public ITracingService TracingService { get; private set; }
+
         public PathUtils PathUtils { get; private set; }
+
         public Campaign Campaign { get; private set; }
 
         private Mod ActiveMod { get; set; }
 
-        // Event handlers
+        // Event handlers from Windows Form Designer
 
-        private void modSelectDropdown_SelectedIndexChanged(object sender, EventArgs e)
+        private void OnModSelectDropdownSelectedIndexChanged(object sender, EventArgs e)
         {
             this.setActiveButton.Enabled = true;
             this.deleteButton.Enabled = true;
         }
 
-        private void setActiveButton_Click(object sender, EventArgs e)
+        private void OnSetActiveButtonClick(object sender, EventArgs e)
         {
             Mod selectedMod = this.GetSelectedMod();
 
@@ -62,7 +65,7 @@ namespace Starcraft_Mod_Manager
             this.SetActiveMod(selectedMod, shouldCopyModFiles: true);
         }
 
-        private void deleteButton_Click(object sender, EventArgs e)
+        private void OnDeleteButtonClick(object sender, EventArgs e)
         {
             Mod selectedMod = this.GetSelectedMod();
 
@@ -75,7 +78,7 @@ namespace Starcraft_Mod_Manager
             this.OnModDeletion(this, new ModDeletedEventArgs(this.Campaign, selectedMod));
         }
 
-        private void restoreButton_Click(object sender, EventArgs e)
+        private void OnRestoreButtonClick(object sender, EventArgs e)
         {
             this.ClearCampaignDirectory();
             this.RefreshActiveModText();
@@ -102,6 +105,11 @@ namespace Starcraft_Mod_Manager
         {
             this.TracingService.TraceInfo($"Setting ActiveMod to '{mod.ToTraceableString()}' for '{this.Campaign}'.");
 
+            if (mod is null)
+            {
+                throw new ArgumentNullException(nameof(mod));
+            }
+
             if (shouldCopyModFiles)
             {
                 this.CopyModFiles(mod);
@@ -123,23 +131,10 @@ namespace Starcraft_Mod_Manager
 
         // Private
 
-        // Simple fetcher for the mod selected under the Dropdown.
-        private Mod GetSelectedMod()
+        private void ClearCampaignDirectory()
         {
-            if (this.modSelectDropdown.SelectedIndex == -1)
-            {
-                return null;
-            }
-            else if (this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] is Mod mod)
-            {
-                return mod;
-            }
-            else
-            {
-                throw new Exception(
-                    $"Failed to get selected mod at selectedIndex '{this.modSelectDropdown.SelectedIndex}'"
-                );
-            }
+            this.TracingService.TraceDebug($"Attempting to clear campaign directory for '{this.Campaign}'.");
+            this.PathUtils.ClearCampaign(this.Campaign);
         }
 
         private async void CopyModFiles(Mod mod)
@@ -162,27 +157,6 @@ namespace Starcraft_Mod_Manager
 
             // Disable the progress bar after we're done copying.
             this.OnProgressUpdate(this, ProgressUpdateEventArgs.InvisibleInstance);
-        }
-
-        private void RefreshActiveModText(Mod mod)
-        {
-            if (mod is null)
-            {
-                this.RefreshActiveModText();
-            }
-            else
-            {
-                this.titleBox.Text = mod.Metadata.Title;
-                this.authorBox.Text = mod.Metadata.Author;
-                this.versionBox.Text = mod.Metadata.Version;
-            }
-        }
-
-        private void RefreshActiveModText()
-        {
-            this.titleBox.Text = "Default Campaign";
-            this.authorBox.Text = "Blizzard";
-            this.versionBox.Text = "N/A";
         }
 
         private void DeleteSelectedMod(Mod mod)
@@ -212,12 +186,44 @@ namespace Starcraft_Mod_Manager
             this.SelectMod(mod: this.ActiveMod);
         }
 
-        // Helpers
-
-        private void ClearCampaignDirectory()
+        // Simple fetcher for the mod selected under the Dropdown.
+        private Mod GetSelectedMod()
         {
-            this.TracingService.TraceDebug($"Attempting to clear campaign directory for '{this.Campaign}'.");
-            this.PathUtils.ClearCampaign(this.Campaign);
+            if (this.modSelectDropdown.SelectedIndex == -1)
+            {
+                return null;
+            }
+            else if (this.modSelectDropdown.Items[this.modSelectDropdown.SelectedIndex] is Mod mod)
+            {
+                return mod;
+            }
+            else
+            {
+                throw new Exception(
+                    $"Failed to get selected mod at selectedIndex '{this.modSelectDropdown.SelectedIndex}'"
+                );
+            }
+        }
+
+        private void RefreshActiveModText(Mod mod)
+        {
+            if (mod is null)
+            {
+                this.RefreshActiveModText();
+            }
+            else
+            {
+                this.titleBox.Text = mod.Metadata.Title;
+                this.authorBox.Text = mod.Metadata.Author;
+                this.versionBox.Text = mod.Metadata.Version;
+            }
+        }
+
+        private void RefreshActiveModText()
+        {
+            this.titleBox.Text = "Default Campaign";
+            this.authorBox.Text = "Blizzard";
+            this.versionBox.Text = "N/A";
         }
     }
 }

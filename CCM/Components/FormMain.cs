@@ -75,7 +75,7 @@ namespace Starcraft_Mod_Manager
         private IEnumerable<ModUserControl> ModUserControls =>
             CampaignsWithModUserControl.Select(campaign => this.GetModUserControlFor(campaign));
 
-        // Event handlers
+        // Event handlers from Windows Form Designer
 
         private void SC2CCM_DragEnter(object sender, DragEventArgs e)
         {

@@ -67,7 +67,7 @@
             this.modSelectDropdown.Name = "modSelectDropdown";
             this.modSelectDropdown.Size = new System.Drawing.Size(188, 21);
             this.modSelectDropdown.TabIndex = 3;
-            this.modSelectDropdown.SelectedIndexChanged += new System.EventHandler(this.modSelectDropdown_SelectedIndexChanged);
+            this.modSelectDropdown.SelectedIndexChanged += new System.EventHandler(this.OnModSelectDropdownSelectedIndexChanged);
             // 
             // titleBox
             // 
@@ -100,7 +100,7 @@
             this.setActiveButton.TabIndex = 6;
             this.setActiveButton.Text = "Set to Active Campaign";
             this.setActiveButton.UseVisualStyleBackColor = true;
-            this.setActiveButton.Click += new System.EventHandler(this.setActiveButton_Click);
+            this.setActiveButton.Click += new System.EventHandler(this.OnSetActiveButtonClick);
             // 
             // deleteButton
             // 
@@ -112,7 +112,7 @@
             this.deleteButton.TabIndex = 7;
             this.deleteButton.Text = "Delete Mod Files";
             this.deleteButton.UseVisualStyleBackColor = true;
-            this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
+            this.deleteButton.Click += new System.EventHandler(this.OnDeleteButtonClick);
             // 
             // restoreButton
             // 
@@ -123,7 +123,7 @@
             this.restoreButton.TabIndex = 8;
             this.restoreButton.Text = "Restore to Unmodified";
             this.restoreButton.UseVisualStyleBackColor = true;
-            this.restoreButton.Click += new System.EventHandler(this.restoreButton_Click);
+            this.restoreButton.Click += new System.EventHandler(this.OnRestoreButtonClick);
             // 
             // authorBox
             // 
