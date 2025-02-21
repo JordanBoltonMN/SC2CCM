@@ -32,8 +32,9 @@ namespace Starcraft_Mod_Manager
 
             // Setting up local state variables.
 
-            LogFlushTimer.Tick += this.on_tick;
-            LogFlushTimer.Interval = 100;
+            LogFlushTimer.Tick += this.OnTimerTick;
+            LogFlushTimer.Interval = 250; // 0.25 second
+            LogFlushTimer.Start();
 
             this.RichTextBoxTracingService = new RichTextBoxTracingService(
                 richTextBox: this.logBox,
@@ -61,7 +62,8 @@ namespace Starcraft_Mod_Manager
                     TracingLevel.Error.ToString(),
                 }
             );
-            this.SetTracingLevel(TracingLevel.Info);
+
+            this.RefreshState();
         }
 
         private ITracingService TracingService { get; }
@@ -75,61 +77,9 @@ namespace Starcraft_Mod_Manager
 
         // Event handlers
 
-        private void SC2MM_Load(object sender, EventArgs e)
-        {
-            copyUpdater();
-            this.PathUtils.VerifyDirectories();
-            MoveModDependencies();
-        }
-
-        private void SC2MM_Shown(object sender, EventArgs e)
-        {
-            LogFlushTimer.Start();
-
-            IEnumerable<(ModUserControl modUserControl, Campaign campaign)> userControlsAndCampaigns =
-                CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
-
-            foreach ((ModUserControl modUserControl, Campaign campaign) in userControlsAndCampaigns)
-            {
-                modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
-                modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(on_modDeleted);
-                modUserControl.OnProgressUpdate += new EventHandler<ProgressUpdateEventArgs>(on_progressUpdate);
-            }
-
-            this.ModsByCampaign = GetCustomModsByCampaign();
-            this.RefreshAvailableModsForModUserControls();
-
-            foreach (ModUserControl modUserControl in this.ModUserControls)
-            {
-                if (
-                    !this.PathUtils.TryFindFileRecursively(
-                        this.PathUtils.GetPathForCampaign(modUserControl.Campaign),
-                        "metadata.txt",
-                        directoryName => !this.PathUtils.CampaignDirectories.Contains(directoryName),
-                        out string metadataFilePath
-                    )
-                )
-                {
-                    this.TracingService.TraceDebug(
-                        $"No 'metadata.txt' found for campaign '{modUserControl.Campaign}'."
-                    );
-
-                    modUserControl.SelectMod(null);
-                }
-                else if (Mod.TryCreate(this.TracingService, metadataFilePath, out Mod activeMod))
-                {
-                    modUserControl.SetActiveMod(activeMod, shouldCopyModFiles: false);
-                }
-                else
-                {
-                    modUserControl.SelectMod(null);
-                }
-            }
-        }
-
         private void SC2CCM_DragEnter(object sender, DragEventArgs e)
         {
-            if (this.TryGetDraggedFileName(e, out string fileName))
+            if (TryGetDraggedZipFileName(e, out string fileName))
             {
                 e.Effect = DragDropEffects.Move;
             }
@@ -142,7 +92,7 @@ namespace Starcraft_Mod_Manager
 
         private void SC2CCM_DragOver(object sender, DragEventArgs e)
         {
-            if (this.TryGetDraggedFileName(e, out string fileName))
+            if (TryGetDraggedZipFileName(e, out string fileName))
             {
                 e.Effect = DragDropEffects.Move;
             }
@@ -171,12 +121,46 @@ namespace Starcraft_Mod_Manager
             await UnzipToCustomCampaigns(zipFilePaths);
         }
 
-        private void on_tick(object sender, EventArgs myEventArgs)
+        private async void OnImportButtonClick(object sender, EventArgs e)
+        {
+            selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
+
+            if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
+            {
+                await this.UnzipToCustomCampaigns(selectFolderDialogue.FileNames);
+            }
+        }
+
+        private void OnLogVerbosityDropdownSelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (
+                !(this.logVerbosityDropdown.SelectedItem is string selectedItem)
+                || !Enum.TryParse(selectedItem, out TracingLevel selectedTracingLevel)
+            )
+            {
+                this.TracingService.TraceError(
+                    $"{nameof(this.OnLogVerbosityDropdownSelectedIndexChanged)} could not parse selectedItem."
+                );
+
+                return;
+            }
+
+            this.SetTracingLevel(selectedTracingLevel);
+        }
+
+        private void OnRefreshButtonClick(object sender, EventArgs e)
+        {
+            this.RefreshState();
+        }
+
+        // EventHandlers not generated by Windows Form Designer.
+
+        private void OnTimerTick(object sender, EventArgs myEventArgs)
         {
             this.RichTextBoxTracingService.Flush();
         }
 
-        private void on_modDeleted(object sender, ModDeletedEventArgs modDeletedEventArgs)
+        private void OnModDeleted(object sender, ModDeletedEventArgs modDeletedEventArgs)
         {
             if (!this.ModsByCampaign.TryGetValue(modDeletedEventArgs.Campaign, out List<Mod> mods))
             {
@@ -198,60 +182,84 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void on_progressUpdate(object sender, ProgressUpdateEventArgs progressUpdateEventArgs)
+        private void OnProgressUpdate(object sender, ProgressUpdateEventArgs progressUpdateEventArgs)
         {
             this.progressBar.Visible = progressUpdateEventArgs.Visible;
             this.progressBar.Value = progressUpdateEventArgs.PercentComplete;
         }
 
-        private async void importButton_Click(object sender, EventArgs e)
-        {
-            selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
-
-            if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
-            {
-                await this.UnzipToCustomCampaigns(selectFolderDialogue.FileNames.ToArray());
-            }
-        }
-
-        private void installButton_Click(object sender, EventArgs e)
-        {
-            SC2MM_Load(null, null);
-            SC2MM_Shown(null, null);
-        }
-
-        private void logVerbosityDropdown_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (
-                !(this.logVerbosityDropdown.SelectedItem is string selectedItem)
-                || !Enum.TryParse(selectedItem, out TracingLevel selectedTracingLevel)
-            )
-            {
-                this.TracingService.TraceError(
-                    $"{nameof(this.logVerbosityDropdown_SelectedIndexChanged)} could not parse selectedItem."
-                );
-
-                return;
-            }
-
-            this.SetTracingLevel(selectedTracingLevel);
-        }
-
         // Private
 
-        private void copyUpdater()
+        private Dictionary<Campaign, List<Mod>> GetCustomModsByCampaign()
         {
-            if (File.Exists("SC2CCMU.exe"))
+            Dictionary<Campaign, List<Mod>> modsByCampaign = CampaignsWithModUserControl.ToDictionary(
+                campaign => campaign,
+                campaign => new List<Mod>()
+            );
+
+            // Search in each directory
+            foreach (
+                string directoryPath in Directory.EnumerateDirectories(
+                    this.PathUtils.PathForCustomCampaigns,
+                    "*",
+                    SearchOption.TopDirectoryOnly
+                )
+            )
             {
-                try
+                // for a metadata.txt file
+                string[] files = Directory.GetFiles(directoryPath, "metadata.txt", SearchOption.AllDirectories);
+                if (files.Length == 0)
                 {
-                    File.Delete("SC2CCM Updater.exe");
-                    File.Move("SC2CCMU.exe", "SC2CCM Updater.exe");
+                    this.TracingService.TraceWarning(
+                        $"Unable to find metadata.txt for '{Path.GetFileName(directoryPath)}'."
+                    );
+
+                    continue;
                 }
-                catch (IOException)
+                else if (files.Length >= 2)
                 {
-                    MessageBox.Show("Failed to delete/move the Updater!");
+                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{directoryPath}'.");
+
+                    continue;
                 }
+                else if (!Mod.TryCreate(this.TracingService, files[0], out Mod currentMod))
+                {
+                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{directoryPath}'.");
+
+                    continue;
+                }
+                else
+                {
+                    modsByCampaign[currentMod.Metadata.Campaign].Add(currentMod);
+                }
+            }
+
+            return modsByCampaign;
+        }
+
+        private ModUserControl GetModUserControlFor(Mod mod)
+        {
+            return this.GetModUserControlFor(mod.Metadata.Campaign);
+        }
+
+        private ModUserControl GetModUserControlFor(Campaign campaign)
+        {
+            switch (campaign)
+            {
+                case Campaign.WoL:
+                    return this.wolModUserControl;
+
+                case Campaign.HotS:
+                    return this.hotsModUserControl;
+
+                case Campaign.LotV:
+                    return this.lotvModUserControl;
+
+                case Campaign.NCO:
+                    return this.ncoModUserControl;
+
+                default:
+                    throw new ArgumentException($"No campaign lists exists for {campaign}");
             }
         }
 
@@ -321,17 +329,9 @@ namespace Starcraft_Mod_Manager
             return pathForStarcraft2Exe;
         }
 
-        private void SetTracingLevel(TracingLevel tracingLevel)
-        {
-            // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
-            this.RichTextBoxTracingService.TracingLevelThreshold = tracingLevel;
-            this.logVerbosityDropdown.SelectedItem = tracingLevel.ToString();
-            this.logBox.Visible = tracingLevel != TracingLevel.Off;
-        }
-
         // Some mods contain dependencies which are either files or directories that end with ".SC2Mod".
         // When added to the CMM these need to be moved to the Mods folder.
-        private void MoveModDependencies()
+        private void MoveSc2ModDependencies()
         {
             // Process files
             foreach (
@@ -386,53 +386,6 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private Dictionary<Campaign, List<Mod>> GetCustomModsByCampaign()
-        {
-            Dictionary<Campaign, List<Mod>> modsByCampaign = CampaignsWithModUserControl.ToDictionary(
-                campaign => campaign,
-                campaign => new List<Mod>()
-            );
-
-            // Search in each directory
-            foreach (
-                string directoryPath in Directory.EnumerateDirectories(
-                    this.PathUtils.PathForCustomCampaigns,
-                    "*",
-                    SearchOption.TopDirectoryOnly
-                )
-            )
-            {
-                // for a metadata.txt file
-                string[] files = Directory.GetFiles(directoryPath, "metadata.txt", SearchOption.AllDirectories);
-                if (files.Length == 0)
-                {
-                    this.TracingService.TraceWarning(
-                        $"Unable to find metadata.txt for '{Path.GetFileName(directoryPath)}'."
-                    );
-
-                    continue;
-                }
-                else if (files.Length >= 2)
-                {
-                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{directoryPath}'.");
-
-                    continue;
-                }
-                else if (!Mod.TryCreate(this.TracingService, files[0], out Mod currentMod))
-                {
-                    this.TracingService.TraceWarning($"Multiple metadata.txt found for '{directoryPath}'.");
-
-                    continue;
-                }
-                else
-                {
-                    modsByCampaign[currentMod.Metadata.Campaign].Add(currentMod);
-                }
-            }
-
-            return modsByCampaign;
-        }
-
         private void PromptToActivateMod(Mod mod)
         {
             if (Prompter.AskYesNo($"Import of {mod} successful, would you like to make it the active campaign?"))
@@ -442,29 +395,55 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private ModUserControl GetModUserControlFor(Mod mod)
+        private void RefreshState()
         {
-            return this.GetModUserControlFor(mod.Metadata.Campaign);
+            this.SetTracingLevel(TracingLevel.Info);
+            this.PathUtils.VerifyDirectories();
+            CopyUpdater();
+            MoveSc2ModDependencies();
+
+            IEnumerable<(ModUserControl modUserControl, Campaign campaign)> userControlsAndCampaigns =
+                CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
+
+            foreach ((ModUserControl modUserControl, Campaign campaign) in userControlsAndCampaigns)
+            {
+                modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
+                modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(OnModDeleted);
+                modUserControl.OnProgressUpdate += new EventHandler<ProgressUpdateEventArgs>(OnProgressUpdate);
+            }
+
+            this.ModsByCampaign = GetCustomModsByCampaign();
+            this.RefreshAvailableModsForModUserControls();
+            this.RefreshActiveMods();
         }
 
-        private ModUserControl GetModUserControlFor(Campaign campaign)
+        private void RefreshActiveMods()
         {
-            switch (campaign)
+            foreach (ModUserControl modUserControl in this.ModUserControls)
             {
-                case Campaign.WoL:
-                    return this.wolModUserControl;
+                if (
+                    !this.PathUtils.TryFindFileRecursively(
+                        this.PathUtils.GetPathForCampaign(modUserControl.Campaign),
+                        "metadata.txt",
+                        directoryName => !this.PathUtils.CampaignDirectories.Contains(directoryName),
+                        out string metadataFilePath
+                    )
+                )
+                {
+                    this.TracingService.TraceDebug(
+                        $"No 'metadata.txt' found for campaign '{modUserControl.Campaign}'."
+                    );
 
-                case Campaign.HotS:
-                    return this.hotsModUserControl;
-
-                case Campaign.LotV:
-                    return this.lotvModUserControl;
-
-                case Campaign.NCO:
-                    return this.ncoModUserControl;
-
-                default:
-                    throw new ArgumentException($"No campaign lists exists for {campaign}");
+                    modUserControl.SelectMod(null);
+                }
+                else if (Mod.TryCreate(this.TracingService, metadataFilePath, out Mod activeMod))
+                {
+                    modUserControl.SetActiveMod(activeMod, shouldCopyModFiles: false);
+                }
+                else
+                {
+                    modUserControl.SelectMod(null);
+                }
             }
         }
 
@@ -481,6 +460,14 @@ namespace Starcraft_Mod_Manager
                     this.TracingService.TraceError($"Unknown campaign '{modUserControl.Campaign}' for ModUserControl.");
                 }
             }
+        }
+
+        private void SetTracingLevel(TracingLevel tracingLevel)
+        {
+            // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
+            this.RichTextBoxTracingService.TracingLevelThreshold = tracingLevel;
+            this.logVerbosityDropdown.SelectedItem = tracingLevel.ToString();
+            this.logBox.Visible = tracingLevel != TracingLevel.Off;
         }
 
         private async Task UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
@@ -544,10 +531,28 @@ namespace Starcraft_Mod_Manager
                 }
             }
 
-            this.MoveModDependencies();
+            this.MoveSc2ModDependencies();
         }
 
-        private bool TryGetDraggedFileName(DragEventArgs e, out string fileName)
+        // private static
+
+        private static void CopyUpdater()
+        {
+            if (File.Exists("SC2CCMU.exe"))
+            {
+                try
+                {
+                    File.Delete("SC2CCM Updater.exe");
+                    File.Move("SC2CCMU.exe", "SC2CCM Updater.exe");
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to delete/move the Updater!");
+                }
+            }
+        }
+
+        private static bool TryGetDraggedZipFileName(DragEventArgs e, out string fileName)
         {
             if ((e.AllowedEffect & DragDropEffects.Copy) == DragDropEffects.Copy)
             {

@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.importButton = new System.Windows.Forms.Button();
-            this.installButton = new System.Windows.Forms.Button();
+            this.refreshButton = new System.Windows.Forms.Button();
             this.findSC2Dialogue = new System.Windows.Forms.OpenFileDialog();
             this.logBox = new System.Windows.Forms.RichTextBox();
             this.selectFolderDialogue = new System.Windows.Forms.OpenFileDialog();
@@ -54,17 +54,17 @@
             this.importButton.TabIndex = 19;
             this.importButton.Text = "Click to import Zip file";
             this.importButton.UseVisualStyleBackColor = true;
-            this.importButton.Click += new System.EventHandler(this.importButton_Click);
+            this.importButton.Click += new System.EventHandler(this.OnImportButtonClick);
             // 
-            // installButton
+            // refreshButton
             // 
-            this.installButton.Location = new System.Drawing.Point(859, 419);
-            this.installButton.Name = "installButton";
-            this.installButton.Size = new System.Drawing.Size(190, 60);
-            this.installButton.TabIndex = 20;
-            this.installButton.Text = "Refresh";
-            this.installButton.UseVisualStyleBackColor = true;
-            this.installButton.Click += new System.EventHandler(this.installButton_Click);
+            this.refreshButton.Location = new System.Drawing.Point(859, 419);
+            this.refreshButton.Name = "refreshButton";
+            this.refreshButton.Size = new System.Drawing.Size(190, 60);
+            this.refreshButton.TabIndex = 20;
+            this.refreshButton.Text = "Refresh";
+            this.refreshButton.UseVisualStyleBackColor = true;
+            this.refreshButton.Click += new System.EventHandler(this.OnRefreshButtonClick);
             // 
             // findSC2Dialogue
             // 
@@ -106,7 +106,7 @@
             this.logVerbosityDropdown.Name = "logVerbosityDropdown";
             this.logVerbosityDropdown.Size = new System.Drawing.Size(188, 24);
             this.logVerbosityDropdown.TabIndex = 30;
-            this.logVerbosityDropdown.SelectedIndexChanged += new System.EventHandler(this.logVerbosityDropdown_SelectedIndexChanged);
+            this.logVerbosityDropdown.SelectedIndexChanged += new System.EventHandler(this.OnLogVerbosityDropdownSelectedIndexChanged);
             // 
             // logVerbosityDropdownLabel
             // 
@@ -191,15 +191,13 @@
             this.Controls.Add(this.wolModUserControl);
             this.Controls.Add(this.logBox);
             this.Controls.Add(this.importPicturebox);
-            this.Controls.Add(this.installButton);
+            this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.importButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "FormMain";
             this.Text = "StarCraft II Custom Campaign Manager v1.04";
-            this.Load += new System.EventHandler(this.SC2MM_Load);
-            this.Shown += new System.EventHandler(this.SC2MM_Shown);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragEnter);
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.SC2CCM_DragOver);
@@ -211,7 +209,7 @@
 
         #endregion
         private System.Windows.Forms.Button importButton;
-        private System.Windows.Forms.Button installButton;
+        private System.Windows.Forms.Button refreshButton;
         private System.Windows.Forms.OpenFileDialog findSC2Dialogue;
         private System.Windows.Forms.RichTextBox logBox;
         private System.Windows.Forms.OpenFileDialog selectFolderDialogue;
