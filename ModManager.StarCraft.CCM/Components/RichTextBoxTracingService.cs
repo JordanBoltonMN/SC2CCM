@@ -104,7 +104,7 @@ namespace Starcraft_Mod_Manager.Components
 
             this.RtfBody = this.GetRtfBodyFromTraceEvents(traceEventsMeetingThreshold);
             this.logBox.Rtf = this.RegenerateRtf();
-            this.ScrollToEnd();
+            this.ScrollToLastLine();
         }
 
         // ITracingService
@@ -182,7 +182,7 @@ namespace Starcraft_Mod_Manager.Components
             this.RtfBody += this.GetRtfBodyByDrainingQueue();
 
             this.logBox.Rtf = this.RegenerateRtf();
-            this.ScrollToEnd();
+            this.ScrollToLastLine();
         }
 
         private string RegenerateRtf()
@@ -231,9 +231,24 @@ namespace Starcraft_Mod_Manager.Components
             return stringBuilder.ToString();
         }
 
-        private void ScrollToEnd()
+        private void ScrollToLastLine()
         {
-            this.logBox.SelectionStart = this.logBox.Text.Length;
+            int lastLineIndex = this.logBox.Lines.Length - 1;
+
+            if (lastLineIndex <= 0)
+            {
+                return;
+            }
+
+            int firstCharIndex = this.logBox.GetFirstCharIndexFromLine(lastLineIndex);
+
+            if (firstCharIndex <= 0)
+            {
+                return;
+            }
+
+            this.logBox.SelectionStart = firstCharIndex;
+            this.logBox.SelectionLength = 0;
             this.logBox.ScrollToCaret();
         }
     }
