@@ -11,13 +11,31 @@ using ModManager.StarCraft.Base.RichText;
 
 namespace Starcraft_Mod_Manager.Components
 {
+    // A RichTextBox capable of being a ITracingService.
+    // Incoming traces append to the log in a queue.
+    // The UI is updated either every X milliseconds or when the queue reaches a certain size.
+    //
+    // Warning:
+    // This keeps a copy of every TraceEvent.
+    // The lifetime of the app should be low enough to not be a problem.
+    // However, it should still be called out.
     public partial class RichTextBoxTracingService : UserControl, ITracingService
     {
-        private static readonly Timer FlushTimer = new Timer();
-
         public RichTextBoxTracingService()
         {
             InitializeComponent();
+
+            this.AllTraceEvents = new List<TraceEvent>();
+            this.PendingTraceEventQueue = new Queue<TraceEvent>();
+            this.QueueThreshold = 100;
+            this.LockObject = new object();
+            this.RtfBody = string.Empty;
+            this.RtfColorTable = new ColorTable<TraceLevel>(Color.Black, traceLevel => traceLevel.ToColor());
+
+            this.FlushTimer = new Timer();
+            this.FlushTimer.Tick += this.OnTimerTick;
+            this.FlushTimer.Interval = 250; // 0.25 second
+            this.FlushTimer.Start();
 
             this.logVerbosityDropdown.Items.AddRange(
                 new string[]
@@ -28,17 +46,7 @@ namespace Starcraft_Mod_Manager.Components
                     TraceLevel.Error.ToString(),
                 }
             );
-
-            FlushTimer.Tick += this.OnTimerTick;
-            FlushTimer.Interval = 250; // 0.25 second
-            FlushTimer.Start();
-
-            this.AllTraceEvents = new List<TraceEvent>();
-            this.PendingTraceEventQueue = new Queue<TraceEvent>();
-            this.QueueThreshold = 100;
-            this.LockObject = new object();
-            this.RtfBody = string.Empty;
-            this.RtfColorTable = new ColorTable<TraceLevel>(Color.Black, traceLevel => traceLevel.ToColor());
+            this.logVerbosityDropdown.SelectedItem = TraceLevel.Info.ToString();
         }
 
         private List<TraceEvent> AllTraceEvents { get; }
@@ -54,6 +62,8 @@ namespace Starcraft_Mod_Manager.Components
         private string RtfBody { get; set; }
 
         private ColorTable<TraceLevel> RtfColorTable { get; }
+
+        private Timer FlushTimer { get; }
 
         // Event handlers
 
