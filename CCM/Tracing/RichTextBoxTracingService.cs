@@ -7,7 +7,6 @@ using System.Windows.Forms;
 using ModManager.StarCraft.Base.RichText;
 using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Starcraft_Mod_Manager.Tracing
 {

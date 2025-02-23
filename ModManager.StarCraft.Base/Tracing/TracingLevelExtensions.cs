@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ModManager.StarCraft.Base.Tracing
 {
@@ -20,7 +16,7 @@ namespace ModManager.StarCraft.Base.Tracing
                     return Color.Red;
 
                 case TracingLevel.Warning:
-                    return Color.Orange;
+                    return Color.DarkOrange;
 
                 case TracingLevel.Info:
                     return Color.DodgerBlue;
