@@ -265,14 +265,14 @@ namespace ModManager.StarCraft.Base
         {
             string[] directoriesToVerify = new string[]
             {
-                PathForCampaignWoL,
-                PathForCampaignHotS,
-                PathForCampaignHotSEvolution,
-                PathForCampaignLotV,
-                PathForCampaignVoidPrologue,
-                PathForCampaignNco,
-                PathForCustomCampaigns,
-                PathForMods,
+                this.PathForCampaignWoL,
+                this.PathForCampaignHotS,
+                this.PathForCampaignHotSEvolution,
+                this.PathForCampaignLotV,
+                this.PathForCampaignVoidPrologue,
+                this.PathForCampaignNco,
+                this.PathForCustomCampaigns,
+                this.PathForMods,
             };
 
             foreach (string directory in directoriesToVerify)

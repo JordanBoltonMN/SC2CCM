@@ -1,6 +1,6 @@
 ﻿namespace Starcraft_Mod_Manager
 {
-    partial class FormMain
+    partial class ProgramForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ProgramForm));
             this.importButton = new System.Windows.Forms.Button();
             this.refreshButton = new System.Windows.Forms.Button();
             this.findSC2Dialogue = new System.Windows.Forms.OpenFileDialog();

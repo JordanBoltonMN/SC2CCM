@@ -10,7 +10,7 @@ using ModManager.StarCraft.Base;
 
 namespace Starcraft_Mod_Manager
 {
-    public partial class FormMain : Form
+    public partial class ProgramForm : Form
     {
         private static readonly Campaign[] CampaignsWithModUserControl = new Campaign[]
         {
@@ -20,15 +20,15 @@ namespace Starcraft_Mod_Manager
             Campaign.NCO,
         };
 
-        public FormMain(ITracingService tracingService)
+        public ProgramForm(ITracingService tracingService)
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
             this.TracingService = new CompositeTracingService(new ITracingService[] { tracingService, this.logger });
 
             this.PathUtils = new PathUtils(
                 this.TracingService,
-                Path.GetDirectoryName(GetOrDerivePathForStarcraft2Exe())
+                Path.GetDirectoryName(this.GetOrDerivePathForStarcraft2Exe())
             );
 
             this.ZipUtils = new ZipUtils(this.TracingService);
@@ -90,16 +90,16 @@ namespace Starcraft_Mod_Manager
                 zipFilePaths.Add(filePath);
             }
 
-            await UnzipToCustomCampaigns(zipFilePaths);
+            await this.UnzipToCustomCampaigns(zipFilePaths);
         }
 
         private async void OnImportButtonClick(object sender, EventArgs e)
         {
-            selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
+            this.selectFolderDialogue.Filter = "zip archives (*.zip)|*.zip";
 
-            if (selectFolderDialogue.ShowDialog() == DialogResult.OK)
+            if (this.selectFolderDialogue.ShowDialog() == DialogResult.OK)
             {
-                await this.UnzipToCustomCampaigns(selectFolderDialogue.FileNames);
+                await this.UnzipToCustomCampaigns(this.selectFolderDialogue.FileNames);
             }
         }
 
@@ -264,10 +264,10 @@ namespace Starcraft_Mod_Manager
                     "It looks like StarCraft II isn't in the default spot!\nPlease use the file browser and select Starcraft II.exe",
                     "StarCraft II Custom Campaign Manager"
                 );
-                if (findSC2Dialogue.ShowDialog() == DialogResult.OK)
+                if (this.findSC2Dialogue.ShowDialog() == DialogResult.OK)
                 {
                     //I don't do a check for the filename because I don't know if it appears different in other languages.
-                    pathForStarcraft2Exe = findSC2Dialogue.FileName;
+                    pathForStarcraft2Exe = this.findSC2Dialogue.FileName;
                     File.WriteAllText(PathUtils.PathForCcmConfig, pathForStarcraft2Exe);
                 }
                 else
@@ -340,7 +340,7 @@ namespace Starcraft_Mod_Manager
         {
             if (Prompter.AskYesNo($"Import of {mod} successful, would you like to make it the active campaign?"))
             {
-                ModUserControl modUserControl = GetModUserControlFor(mod);
+                ModUserControl modUserControl = this.GetModUserControlFor(mod);
                 modUserControl.SetActiveMod(mod, shouldCopyModFiles: true);
             }
         }
@@ -349,7 +349,7 @@ namespace Starcraft_Mod_Manager
         {
             this.PathUtils.VerifyDirectories();
             CopyUpdater();
-            MoveSc2ModDependencies();
+            this.MoveSc2ModDependencies();
 
             IEnumerable<(ModUserControl modUserControl, Campaign campaign)> userControlsAndCampaigns =
                 CampaignsWithModUserControl.Select(campaign => (this.GetModUserControlFor(campaign), campaign));
@@ -357,11 +357,11 @@ namespace Starcraft_Mod_Manager
             foreach ((ModUserControl modUserControl, Campaign campaign) in userControlsAndCampaigns)
             {
                 modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
-                modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(OnModDeleted);
-                modUserControl.OnProgressUpdate += new EventHandler<ProgressUpdateEventArgs>(OnProgressUpdate);
+                modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(this.OnModDeleted);
+                modUserControl.OnProgressUpdate += new EventHandler<ProgressUpdateEventArgs>(this.OnProgressUpdate);
             }
 
-            this.ModsByCampaign = GetCustomModsByCampaign();
+            this.ModsByCampaign = this.GetCustomModsByCampaign();
             this.RefreshAvailableModsForModUserControls();
             this.RefreshActiveMods();
         }
@@ -440,8 +440,8 @@ namespace Starcraft_Mod_Manager
                 {
                     // Since the path is being derived from user data we need to sanitize it to only allow valid characters.
                     string modDirectoryPath = Path.Combine(
-                        PathUtils.PathForCustomCampaigns,
-                        PathUtils.GetSanitizedPath($"{modMetadata.Title} ({modMetadata.Version})", '-')
+                        this.PathUtils.PathForCustomCampaigns,
+                        this.PathUtils.GetSanitizedPath($"{modMetadata.Title} ({modMetadata.Version})", '-')
                     );
 
                     Mod modFromZip = new Mod(modMetadata, Path.Combine(modDirectoryPath, fullName));

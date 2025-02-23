@@ -71,7 +71,7 @@ namespace ModManager.StarCraft.Base
 
         public override string ToString()
         {
-            return $"{Title} ({Version})";
+            return $"{this.Title} ({this.Version})";
         }
 
         public override bool Equals(object obj)

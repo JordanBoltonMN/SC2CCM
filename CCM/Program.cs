@@ -17,7 +17,7 @@ namespace Starcraft_Mod_Manager
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(
-                new FormMain(
+                new ProgramForm(
                     new RollingFileLogger(
                         Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "SCC",

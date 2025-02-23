@@ -1,0 +1,62 @@
+# Root .editorconfig file (ensure this is in your repo root)
+root = true
+
+# ---- General Formatting ----
+[*.cs]
+
+# Use spaces instead of tabs
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Trim trailing whitespace
+trim_trailing_whitespace = true
+
+# Insert a final newline at the end of files
+insert_final_newline = true
+
+# ---- Code Style: 'this.' Qualification ----
+dotnet_style_qualification_for_field = true:warning
+dotnet_style_qualification_for_property = true:warning
+dotnet_style_qualification_for_method = true:warning
+dotnet_style_qualification_for_event = true:warning
+
+# ---- Naming Conventions ----
+dotnet_naming_rule.private_fields_should_be_camel_case.severity = warning
+dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case.style = camel_case_underscore
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers = 
+
+dotnet_naming_style.camel_case_underscore.capitalization = camel_case
+dotnet_naming_style.camel_case_underscore.required_prefix = _
+
+# ---- Bracing & Formatting ----
+csharp_new_line_before_open_brace = all:warning
+csharp_new_line_before_else = true:warning
+csharp_new_line_before_catch = true:warning
+csharp_new_line_before_finally = true:warning
+csharp_new_line_between_query_expression_clauses = true:warning
+
+# ---- Expression & Pattern Preferences ----
+dotnet_style_object_initializer = true:warning
+dotnet_style_collection_initializer = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+dotnet_style_prefer_conditional_expression_over_assignment = true:warning
+dotnet_style_prefer_conditional_expression_over_return = true:warning
+
+# ---- Unused Code & Readability ----
+dotnet_style_unused_parameters = fade_out:warning
+dotnet_style_readability_access_modifiers = true:warning
+dotnet_style_readability_no_crlf = true:warning
+
+# ---- Enforce File & Naming Rules ----
+# Require 'file-scoped' namespace in C# 10+
+csharp_style_namespace_declarations = file_scoped:warning
+
+# ---- Performance & Best Practices ----
+dotnet_style_prefer_foreach_explicit_type = false:warning
+dotnet_style_prefer_auto_properties = true:warning
+dotnet_style_null_checking_preference = throw_expression:warning

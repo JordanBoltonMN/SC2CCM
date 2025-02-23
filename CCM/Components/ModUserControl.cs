@@ -12,7 +12,7 @@ namespace Starcraft_Mod_Manager
     {
         public ModUserControl()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
         public void InitializeComponent(ITracingService tracingService, PathUtils pathUtils, Campaign campaign)
@@ -147,7 +147,7 @@ namespace Starcraft_Mod_Manager
                 this.OnProgressUpdate(this, new ProgressUpdateEventArgs(visible: true, ioProgress));
             });
 
-            await PathUtils.CopyFilesAndFolders(
+            await this.PathUtils.CopyFilesAndFolders(
                 Path.GetDirectoryName(mod.MetadataFilePath),
                 this.PathUtils.GetPathForCampaign(this.Campaign),
                 progress
@@ -177,7 +177,7 @@ namespace Starcraft_Mod_Manager
             }
 
             this.PathUtils.ClearDirectory(
-                PathUtils.GetImmediateSubdirectory(mod.MetadataFilePath, PathUtils.PathForCustomCampaigns)
+                this.PathUtils.GetImmediateSubdirectory(mod.MetadataFilePath, this.PathUtils.PathForCustomCampaigns)
             );
 
             this.modSelectDropdown.Items.Remove(mod);

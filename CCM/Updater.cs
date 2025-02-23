@@ -12,9 +12,9 @@ public class Updater
 {
     public Updater()
     {
-        int needsUpdate = CheckForUpdates();
+        int needsUpdate = this.CheckForUpdates();
         if (needsUpdate > 0)
-            RunUpdater(needsUpdate);
+            this.RunUpdater(needsUpdate);
     }
 
     /* Fucntion that goes out to github to check if a new version number has been posted.

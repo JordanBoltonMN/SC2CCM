@@ -23,7 +23,7 @@ namespace Starcraft_Mod_Manager.Components
     {
         public RichTextBoxTracingService()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
             this.AllTraceEvents = new List<TraceEvent>();
             this.PendingTraceEventQueue = new Queue<TraceEvent>();
