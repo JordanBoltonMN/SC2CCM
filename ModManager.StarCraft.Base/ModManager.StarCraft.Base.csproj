@@ -56,11 +56,14 @@
     <Compile Include="Extensions\IDictionaryExtensions.cs" />
     <Compile Include="Extensions\ObjectExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="RichText\ColorDefinition.cs" />
+    <Compile Include="RichText\ColorTable.cs" />
     <Compile Include="Tracing\CompositeTracingService.cs" />
     <Compile Include="Tracing\ITracingService.cs" />
     <Compile Include="Tracing\RollingFileTracingService.cs" />
     <Compile Include="Tracing\TraceEvent.cs" />
     <Compile Include="Tracing\TracingLevel.cs" />
+    <Compile Include="Tracing\TracingLevelExtensions.cs" />
     <Compile Include="ZipUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

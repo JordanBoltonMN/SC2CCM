@@ -13,6 +13,11 @@ namespace ModManager.StarCraft.Base.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
+            if (tracingLevel == TracingLevel.Off)
+            {
+                throw new ArgumentException("cannot be Off", nameof(tracingLevel));
+            }
+
             this.Message = message;
             this.Level = tracingLevel;
             this.Source = $"{Path.GetFileNameWithoutExtension(callerFilePath)}/{callerMemberName}";

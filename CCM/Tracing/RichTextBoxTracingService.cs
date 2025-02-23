@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Forms;
+using ModManager.StarCraft.Base.RichText;
 using ModManager.StarCraft.Base.Tracing;
 using ModManager.StarCraft.Services.Tracing;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Starcraft_Mod_Manager.Tracing
 {
@@ -24,6 +27,13 @@ namespace Starcraft_Mod_Manager.Tracing
             this.QueueThreshold = queueThreshold;
             this.LockObject = new object();
 
+            this.RtfColorTable = new ColorTable<TracingLevel>(
+                Color.FromKnownColor(KnownColor.Black),
+                tracingLevel => tracingLevel.ToColor()
+            );
+
+            this.RtfBody = string.Empty;
+
             this._tracingLevelThreshold = tracingLevelThreshold;
         }
 
@@ -38,9 +48,8 @@ namespace Starcraft_Mod_Manager.Tracing
                     traceEvent.Level <= this.TracingLevelThreshold
                 );
 
-                string richText = this.GetRichTextFromTraceEvents(traceEventsMeetingThreshold);
-
-                this.RichTextBox.Text = richText;
+                this.RtfBody = this.GetRichTextFromTraceEvents(traceEventsMeetingThreshold);
+                this.RichTextBox.Rtf = this.CreateRtf();
                 this.ScrollToEnd();
             }
         }
@@ -54,6 +63,10 @@ namespace Starcraft_Mod_Manager.Tracing
         private int QueueThreshold { get; }
 
         private object LockObject { get; }
+
+        private ColorTable<TracingLevel> RtfColorTable { get; }
+
+        private string RtfBody { get; set; }
 
         public void TraceEvent(TraceEvent traceEvent)
         {
@@ -136,11 +149,21 @@ namespace Starcraft_Mod_Manager.Tracing
 
         private void FlushInternal()
         {
-            this.RichTextBox.AppendText(this.GetRichTextFromQueueDraining());
+            this.RtfBody += this.GetRtfBodyByQueueDraining();
+
+            this.RichTextBox.Rtf = this.CreateRtf();
             this.ScrollToEnd();
         }
 
-        private string GetRichTextFromQueueDraining()
+        private string CreateRtf()
+        {
+            return $@"{{\rtf1
+{this.RtfColorTable.Rtf}
+{this.RtfBody}
+}}";
+        }
+
+        private string GetRtfBodyByQueueDraining()
         {
             string result = this.GetRichTextFromTraceEvents(this.PendingTraceEventQueue);
 
@@ -160,7 +183,15 @@ namespace Starcraft_Mod_Manager.Tracing
                     continue;
                 }
 
-                stringBuilder.AppendLine($"{traceEvent.Level}: {traceEvent.Message}");
+                int indexOfColorDef = this.RtfColorTable.GetColorIndex(traceEvent.Level);
+
+                // Escape the following: '\', '{', and '}'
+                string escapedMessage = traceEvent.Message.Replace(@"\", @"\\").Replace("{", @"\{").Replace("}", @"\}");
+
+                stringBuilder.AppendLine(
+                    // $"\\cf{indexOfColorDef} Hello world \\par"
+                    $"\\cf{this.RtfColorTable.DefaultColorIndex} {traceEvent.TimeStamp} - \\cf{indexOfColorDef} {traceEvent.Level} - {escapedMessage}\\par"
+                );
             }
 
             return stringBuilder.ToString();
