@@ -1,14 +1,14 @@
-﻿using System.Runtime.CompilerServices;
-using ModManager.StarCraft.Base.Tracing;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
-namespace ModManager.StarCraft.Services.Tracing
+namespace ModManager.StarCraft.Base
 {
     public interface ITracingService
     {
         void TraceEvent(TraceEvent traceEvent);
 
         void TraceMessage(
-            TracingLevel level,
+            TraceLevel level,
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
@@ -32,7 +32,7 @@ namespace ModManager.StarCraft.Services.Tracing
             [CallerMemberName] string callerMemberName = ""
         );
 
-        void TraceDebug(
+        void TraceVerbose(
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""

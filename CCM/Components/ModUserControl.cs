@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
-using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Services.Tracing;
 
 namespace Starcraft_Mod_Manager
 {
@@ -123,7 +121,7 @@ namespace Starcraft_Mod_Manager
         // Passing null acts as an unselect.
         public void SelectMod(Mod mod)
         {
-            this.TracingService.TraceDebug($"Selecting mod '{mod.ToTraceableString()}' for '{this.Campaign}'.");
+            this.TracingService.TraceVerbose($"Selecting mod '{mod.ToTraceableString()}' for '{this.Campaign}'.");
 
             this.modSelectDropdown.SelectedIndex = mod != null ? this.modSelectDropdown.Items.IndexOf(mod) : -1;
             this.RefreshActiveModText(mod);
@@ -133,13 +131,13 @@ namespace Starcraft_Mod_Manager
 
         private void ClearCampaignDirectory()
         {
-            this.TracingService.TraceDebug($"Attempting to clear campaign directory for '{this.Campaign}'.");
+            this.TracingService.TraceVerbose($"Attempting to clear campaign directory for '{this.Campaign}'.");
             this.PathUtils.ClearCampaign(this.Campaign);
         }
 
         private async void CopyModFiles(Mod mod)
         {
-            this.TracingService.TraceDebug($"Copying files for '{mod.ToTraceableString()}' for '{this.Campaign}'.");
+            this.TracingService.TraceVerbose($"Copying files for '{mod.ToTraceableString()}' for '{this.Campaign}'.");
 
             this.ClearCampaignDirectory();
 

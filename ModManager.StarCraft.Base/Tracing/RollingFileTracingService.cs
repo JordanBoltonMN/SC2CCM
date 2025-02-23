@@ -1,12 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Windows.Forms;
-using ModManager.StarCraft.Services.Tracing;
 
-namespace ModManager.StarCraft.Base.Tracing
+namespace ModManager.StarCraft.Base
 {
     public class RollingFileLogger : IDisposable, ITracingService
     {
@@ -53,7 +51,7 @@ namespace ModManager.StarCraft.Base.Tracing
         }
 
         public void TraceMessage(
-            TracingLevel level,
+            TraceLevel level,
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
@@ -68,7 +66,7 @@ namespace ModManager.StarCraft.Base.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Error, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Error, callerFilePath, callerMemberName));
         }
 
         public void TraceWarning(
@@ -77,7 +75,7 @@ namespace ModManager.StarCraft.Base.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Warning, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Warning, callerFilePath, callerMemberName));
         }
 
         public void TraceInfo(
@@ -86,16 +84,16 @@ namespace ModManager.StarCraft.Base.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Info, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Info, callerFilePath, callerMemberName));
         }
 
-        public void TraceDebug(
+        public void TraceVerbose(
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Debug, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Verbose, callerFilePath, callerMemberName));
         }
 
         private void RollFile()

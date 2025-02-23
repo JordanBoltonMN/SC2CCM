@@ -1,6 +1,4 @@
-﻿using ModManager.StarCraft.Base.Tracing;
-
-namespace ModManager.StarCraft.Base
+﻿namespace ModManager.StarCraft.Base
 {
     public readonly struct IOProgress
     {

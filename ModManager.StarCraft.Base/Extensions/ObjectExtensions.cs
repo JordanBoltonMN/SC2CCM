@@ -1,7 +1,10 @@
-﻿public static class ObjectExtensions
+﻿namespace ModManager.StarCraft.Base
 {
-    public static string ToTraceableString(this object obj)
+    public static class ObjectExtensions
     {
-        return obj is null ? "[null]" : obj.ToString();
+        public static string ToTraceableString(this object obj)
+        {
+            return obj is null ? "[null]" : obj.ToString();
+        }
     }
 }

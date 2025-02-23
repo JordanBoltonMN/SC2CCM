@@ -62,8 +62,7 @@
     <Compile Include="Tracing\ITracingService.cs" />
     <Compile Include="Tracing\RollingFileTracingService.cs" />
     <Compile Include="Tracing\TraceEvent.cs" />
-    <Compile Include="Tracing\TracingLevel.cs" />
-    <Compile Include="Tracing\TracingLevelExtensions.cs" />
+    <Compile Include="Extensions\TraceLevelExtensions.cs" />
     <Compile Include="ZipUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

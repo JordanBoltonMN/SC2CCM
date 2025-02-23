@@ -1,19 +1,20 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace ModManager.StarCraft.Base.Tracing
+namespace ModManager.StarCraft.Base
 {
     public readonly struct TraceEvent
     {
         public TraceEvent(
             string message,
-            TracingLevel tracingLevel,
+            TraceLevel tracingLevel,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            if (tracingLevel == TracingLevel.Off)
+            if (tracingLevel == TraceLevel.Off)
             {
                 throw new ArgumentException("cannot be Off", nameof(tracingLevel));
             }
@@ -25,7 +26,7 @@ namespace ModManager.StarCraft.Base.Tracing
         }
 
         public string Message { get; }
-        public TracingLevel Level { get; }
+        public TraceLevel Level { get; }
         public string Source { get; }
         public DateTime TimeStamp { get; }
     }

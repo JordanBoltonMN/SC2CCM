@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
 {

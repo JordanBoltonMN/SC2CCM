@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Services.Tracing;
+﻿using System.Collections.Generic;
 
 namespace ModManager.StarCraft.Base
 {

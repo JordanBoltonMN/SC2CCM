@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
-using ModManager.StarCraft.Base.Tracing;
+using ModManager.StarCraft.Base;
 
 namespace Starcraft_Mod_Manager
 {
@@ -12,7 +12,7 @@ namespace Starcraft_Mod_Manager
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
+        static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using ModManager.StarCraft.Base.Tracing;
 
-namespace ModManager.StarCraft.Services.Tracing
+namespace ModManager.StarCraft.Base
 {
     public class CompositeTracingService : IDisposable, ITracingService
     {
@@ -31,7 +31,7 @@ namespace ModManager.StarCraft.Services.Tracing
         }
 
         public void TraceMessage(
-            TracingLevel level,
+            TraceLevel level,
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
@@ -46,7 +46,7 @@ namespace ModManager.StarCraft.Services.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Error, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Error, callerFilePath, callerMemberName));
         }
 
         public void TraceWarning(
@@ -55,7 +55,7 @@ namespace ModManager.StarCraft.Services.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Warning, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Warning, callerFilePath, callerMemberName));
         }
 
         public void TraceInfo(
@@ -64,16 +64,16 @@ namespace ModManager.StarCraft.Services.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Info, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Info, callerFilePath, callerMemberName));
         }
 
-        public void TraceDebug(
+        public void TraceVerbose(
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Debug, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Verbose, callerFilePath, callerMemberName));
         }
 
         public void Register(ITracingService tracingService)

@@ -1,17 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-public static class StringExtensions
+namespace ModManager.StarCraft.Base
 {
-    public static IEnumerable<string> ReadLines(this string text)
+    public static class StringExtensions
     {
-        string line;
-
-        using (StringReader reader = new StringReader(text))
+        public static IEnumerable<string> ReadLines(this string text)
         {
-            while ((line = reader.ReadLine()) != null)
+            string line;
+
+            using (StringReader reader = new StringReader(text))
             {
-                yield return line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    yield return line;
+                }
             }
         }
     }

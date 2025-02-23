@@ -1,6 +1,5 @@
 ﻿using System;
 using ModManager.StarCraft.Base;
-using ModManager.StarCraft.Base.Enums;
 
 namespace Starcraft_Mod_Manager
 {

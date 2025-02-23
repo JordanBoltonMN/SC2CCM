@@ -1,4 +1,4 @@
-﻿namespace ModManager.StarCraft.Base.Enums
+﻿namespace ModManager.StarCraft.Base
 {
     public class CommonPath
     {

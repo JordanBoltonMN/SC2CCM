@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace ModManager.StarCraft.Base.Enums
+namespace ModManager.StarCraft.Base
 {
     public static class CampaignExtensions
     {

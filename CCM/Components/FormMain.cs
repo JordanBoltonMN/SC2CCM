@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
-using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Base.Tracing;
-using ModManager.StarCraft.Services.Tracing;
 using Starcraft_Mod_Manager.Tracing;
 
 namespace Starcraft_Mod_Manager
@@ -38,7 +36,7 @@ namespace Starcraft_Mod_Manager
 
             this.RichTextBoxTracingService = new RichTextBoxTracingService(
                 richTextBox: this.logBox,
-                tracingLevelThreshold: TracingLevel.Warning,
+                tracingLevelThreshold: TraceLevel.Warning,
                 queueThreshold: 100
             );
 
@@ -56,10 +54,10 @@ namespace Starcraft_Mod_Manager
             this.logVerbosityDropdown.Items.AddRange(
                 new string[]
                 {
-                    TracingLevel.Debug.ToString(),
-                    TracingLevel.Info.ToString(),
-                    TracingLevel.Warning.ToString(),
-                    TracingLevel.Error.ToString(),
+                    TraceLevel.Verbose.ToString(),
+                    TraceLevel.Info.ToString(),
+                    TraceLevel.Warning.ToString(),
+                    TraceLevel.Error.ToString(),
                 }
             );
 
@@ -85,7 +83,7 @@ namespace Starcraft_Mod_Manager
             }
             else
             {
-                this.TracingService.TraceDebug($"Drag Enter with fileName '{fileName}' is invalid.");
+                this.TracingService.TraceVerbose($"Drag Enter with fileName '{fileName}' is invalid.");
                 e.Effect = DragDropEffects.None;
             }
         }
@@ -99,7 +97,7 @@ namespace Starcraft_Mod_Manager
             else
             {
                 e.Effect = DragDropEffects.None;
-                this.TracingService.TraceDebug($"Drag Enter with fileName '{fileName}' is invalid.");
+                this.TracingService.TraceVerbose($"Drag Enter with fileName '{fileName}' is invalid.");
             }
         }
 
@@ -135,7 +133,7 @@ namespace Starcraft_Mod_Manager
         {
             if (
                 !(this.logVerbosityDropdown.SelectedItem is string selectedItem)
-                || !Enum.TryParse(selectedItem, out TracingLevel selectedTracingLevel)
+                || !Enum.TryParse(selectedItem, out TraceLevel selectedTraceLevel)
             )
             {
                 this.TracingService.TraceError(
@@ -145,7 +143,7 @@ namespace Starcraft_Mod_Manager
                 return;
             }
 
-            this.SetTracingLevel(selectedTracingLevel);
+            this.SetTraceLevel(selectedTraceLevel);
         }
 
         private void OnRefreshButtonClick(object sender, EventArgs e)
@@ -348,7 +346,7 @@ namespace Starcraft_Mod_Manager
                 try
                 {
                     this.PathUtils.DeleteIfExists(destinationFilePath);
-                    this.TracingService.TraceDebug($"Moving file '{fileName}' to Dependencies folder.");
+                    this.TracingService.TraceVerbose($"Moving file '{fileName}' to Dependencies folder.");
                     File.Move(sourceFilePath, destinationFilePath);
                 }
                 catch (IOException)
@@ -374,7 +372,7 @@ namespace Starcraft_Mod_Manager
                 try
                 {
                     this.PathUtils.DeleteIfExists(destinationDirectoryPath);
-                    this.TracingService.TraceDebug($"Moving directory '{directoryName}' to Dependencies folder.");
+                    this.TracingService.TraceVerbose($"Moving directory '{directoryName}' to Dependencies folder.");
                     Directory.Move(sourceDirectoryPath, destinationDirectoryPath);
                 }
                 catch (IOException)
@@ -397,7 +395,7 @@ namespace Starcraft_Mod_Manager
 
         private void RefreshState()
         {
-            this.SetTracingLevel(TracingLevel.Info);
+            this.SetTraceLevel(TraceLevel.Info);
             this.PathUtils.VerifyDirectories();
             CopyUpdater();
             MoveSc2ModDependencies();
@@ -430,7 +428,7 @@ namespace Starcraft_Mod_Manager
                     )
                 )
                 {
-                    this.TracingService.TraceDebug(
+                    this.TracingService.TraceVerbose(
                         $"No 'metadata.txt' found for campaign '{modUserControl.Campaign}'."
                     );
 
@@ -462,17 +460,17 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void SetTracingLevel(TracingLevel tracingLevel)
+        private void SetTraceLevel(TraceLevel tracingLevel)
         {
-            // Updates the displayed messages to only include those at least as severe as the selected TracingLevel.
-            this.RichTextBoxTracingService.TracingLevelThreshold = tracingLevel;
+            // Updates the displayed messages to only include those at least as severe as the selected TraceLevel.
+            this.RichTextBoxTracingService.TraceLevelThreshold = tracingLevel;
             this.logVerbosityDropdown.SelectedItem = tracingLevel.ToString();
-            this.logBox.Visible = tracingLevel != TracingLevel.Off;
+            this.logBox.Visible = tracingLevel != TraceLevel.Off;
         }
 
         private async Task UnzipToCustomCampaigns(IEnumerable<string> zipFilePaths)
         {
-            this.TracingService.TraceDebug($"Unzipping [{(string.Join(", ", zipFilePaths))}]");
+            this.TracingService.TraceVerbose($"Unzipping [{(string.Join(", ", zipFilePaths))}]");
 
             foreach (string zipFilePath in zipFilePaths)
             {

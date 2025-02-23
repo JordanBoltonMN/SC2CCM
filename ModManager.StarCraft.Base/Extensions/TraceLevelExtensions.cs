@@ -1,27 +1,28 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 
-namespace ModManager.StarCraft.Base.Tracing
+namespace ModManager.StarCraft.Base
 {
-    public static class TracingLevelExtensions
+    public static class TraceLevelExtensions
     {
-        public static Color ToColor(this TracingLevel tracingLevel)
+        public static Color ToColor(this TraceLevel tracingLevel)
         {
             switch (tracingLevel)
             {
-                case TracingLevel.Off:
+                case TraceLevel.Off:
                     return Color.White;
 
-                case TracingLevel.Error:
+                case TraceLevel.Error:
                     return Color.Red;
 
-                case TracingLevel.Warning:
+                case TraceLevel.Warning:
                     return Color.DarkOrange;
 
-                case TracingLevel.Info:
+                case TraceLevel.Info:
                     return Color.DodgerBlue;
 
-                case TracingLevel.Debug:
+                case TraceLevel.Verbose:
                     return Color.DarkGray;
 
                 default:

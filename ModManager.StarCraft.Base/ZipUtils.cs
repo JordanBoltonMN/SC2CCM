@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
-using ModManager.StarCraft.Base.Tracing;
-using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
 {
@@ -72,11 +71,11 @@ namespace ModManager.StarCraft.Base
         // Iteratively extracts the zip to the destination.
         public async Task ExtractZipFile(string zipFilePath, string destinationFolder, IProgress<IOProgress> progress)
         {
-            this.TracingService.TraceDebug($"Extracting zip '{zipFilePath}' to '{destinationFolder}'.");
+            this.TracingService.TraceVerbose($"Extracting zip '{zipFilePath}' to '{destinationFolder}'.");
 
             if (!Directory.Exists(destinationFolder))
             {
-                this.TracingService.TraceDebug($"Destination '{destinationFolder}' does not exist. Creating.");
+                this.TracingService.TraceVerbose($"Destination '{destinationFolder}' does not exist. Creating.");
 
                 Directory.CreateDirectory(destinationFolder);
             }
@@ -116,7 +115,7 @@ namespace ModManager.StarCraft.Base
                             new IOProgress(
                                 new TraceEvent(
                                     $"Extracting zip entry '{entry.Name}' to '{destinationPath}'.",
-                                    Tracing.TracingLevel.Debug
+                                    TraceLevel.Verbose
                                 ),
                                 numProcessedItems: numFilesProcessed,
                                 numTotalItems: numTotalFiles

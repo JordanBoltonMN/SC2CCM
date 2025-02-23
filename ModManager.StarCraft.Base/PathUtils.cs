@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using ModManager.StarCraft.Base.Enums;
-using ModManager.StarCraft.Base.Tracing;
-using ModManager.StarCraft.Services.Tracing;
 
 namespace ModManager.StarCraft.Base
 {
@@ -69,7 +67,7 @@ namespace ModManager.StarCraft.Base
             out string filePath
         )
         {
-            this.TracingService.TraceDebug($"Attempting to find '{fileName}' in '{directory}'.");
+            this.TracingService.TraceVerbose($"Attempting to find '{fileName}' in '{directory}'.");
 
             try
             {
@@ -186,7 +184,7 @@ namespace ModManager.StarCraft.Base
                     {
                         progress.Report(
                             new IOProgress(
-                                new TraceEvent($"Creating subdirectory '{targetSubDirectory}'.", TracingLevel.Debug),
+                                new TraceEvent($"Creating subdirectory '{targetSubDirectory}'.", TraceLevel.Verbose),
                                 numItemsProcessed,
                                 numTotalItems
                             )
@@ -204,7 +202,7 @@ namespace ModManager.StarCraft.Base
 
                     progress.Report(
                         new IOProgress(
-                            new TraceEvent($"Copying '{sourceFilePath}' to '{targetFilePath}'.", TracingLevel.Debug),
+                            new TraceEvent($"Copying '{sourceFilePath}' to '{targetFilePath}'.", TraceLevel.Verbose),
                             numItemsProcessed,
                             numTotalItems
                         )
@@ -231,7 +229,7 @@ namespace ModManager.StarCraft.Base
 
                 if (!Directory.Exists(targetSubDirectory))
                 {
-                    this.TracingService.TraceDebug($"Creating subdirectory '{targetSubDirectory}'.");
+                    this.TracingService.TraceVerbose($"Creating subdirectory '{targetSubDirectory}'.");
                     Directory.CreateDirectory(sourceSubDirectory.Replace(sourceDirectory, targetDirectory));
                 }
             }
@@ -241,7 +239,7 @@ namespace ModManager.StarCraft.Base
             )
             {
                 string targetFilePath = sourceFilePath.Replace(sourceDirectory, targetDirectory);
-                this.TracingService.TraceDebug($"Copying '{sourceFilePath}' to '{targetFilePath}'.");
+                this.TracingService.TraceVerbose($"Copying '{sourceFilePath}' to '{targetFilePath}'.");
 
                 File.Copy(sourceFilePath, targetFilePath, overwrite: true);
             }
@@ -251,12 +249,12 @@ namespace ModManager.StarCraft.Base
         {
             if (Directory.Exists(path))
             {
-                this.TracingService.TraceDebug($"Deleting directory '{path}'.");
+                this.TracingService.TraceVerbose($"Deleting directory '{path}'.");
                 Directory.Delete(path, true);
             }
             if (File.Exists(path))
             {
-                this.TracingService.TraceDebug($"Delete file '{path}'.");
+                this.TracingService.TraceVerbose($"Delete file '{path}'.");
                 File.Delete(path);
             }
         }

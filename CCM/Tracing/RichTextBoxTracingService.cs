@@ -1,24 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Forms;
+using ModManager.StarCraft.Base;
 using ModManager.StarCraft.Base.RichText;
-using ModManager.StarCraft.Base.Tracing;
-using ModManager.StarCraft.Services.Tracing;
 
 namespace Starcraft_Mod_Manager.Tracing
 {
     public class RichTextBoxTracingService : ITracingService
     {
-        private TracingLevel _tracingLevelThreshold;
+        private TraceLevel _tracingLevelThreshold;
 
-        public RichTextBoxTracingService(
-            RichTextBox richTextBox,
-            TracingLevel tracingLevelThreshold,
-            int queueThreshold
-        )
+        public RichTextBoxTracingService(RichTextBox richTextBox, TraceLevel tracingLevelThreshold, int queueThreshold)
         {
             this.RichTextBox = richTextBox;
             this.AllTraceEvents = new List<TraceEvent>();
@@ -26,7 +22,7 @@ namespace Starcraft_Mod_Manager.Tracing
             this.QueueThreshold = queueThreshold;
             this.LockObject = new object();
 
-            this.RtfColorTable = new ColorTable<TracingLevel>(
+            this.RtfColorTable = new ColorTable<TraceLevel>(
                 Color.FromKnownColor(KnownColor.Black),
                 tracingLevel => tracingLevel.ToColor()
             );
@@ -36,7 +32,7 @@ namespace Starcraft_Mod_Manager.Tracing
             this._tracingLevelThreshold = tracingLevelThreshold;
         }
 
-        public TracingLevel TracingLevelThreshold
+        public TraceLevel TraceLevelThreshold
         {
             get { return this._tracingLevelThreshold; }
             set
@@ -44,7 +40,7 @@ namespace Starcraft_Mod_Manager.Tracing
                 this._tracingLevelThreshold = value;
 
                 IEnumerable<TraceEvent> traceEventsMeetingThreshold = this.AllTraceEvents.Where(traceEvent =>
-                    traceEvent.Level <= this.TracingLevelThreshold
+                    traceEvent.Level <= this.TraceLevelThreshold
                 );
 
                 this.RtfBody = this.GetRichTextFromTraceEvents(traceEventsMeetingThreshold);
@@ -63,7 +59,7 @@ namespace Starcraft_Mod_Manager.Tracing
 
         private object LockObject { get; }
 
-        private ColorTable<TracingLevel> RtfColorTable { get; }
+        private ColorTable<TraceLevel> RtfColorTable { get; }
 
         private string RtfBody { get; set; }
 
@@ -73,7 +69,7 @@ namespace Starcraft_Mod_Manager.Tracing
             {
                 this.AllTraceEvents.Add(traceEvent);
 
-                if (traceEvent.Level > this.TracingLevelThreshold)
+                if (traceEvent.Level > this.TraceLevelThreshold)
                 {
                     return;
                 }
@@ -88,7 +84,7 @@ namespace Starcraft_Mod_Manager.Tracing
         }
 
         public void TraceMessage(
-            TracingLevel level,
+            TraceLevel level,
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
@@ -103,7 +99,7 @@ namespace Starcraft_Mod_Manager.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Error, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Error, callerFilePath, callerMemberName));
         }
 
         public void TraceWarning(
@@ -112,7 +108,7 @@ namespace Starcraft_Mod_Manager.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Warning, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Warning, callerFilePath, callerMemberName));
         }
 
         public void TraceInfo(
@@ -121,16 +117,16 @@ namespace Starcraft_Mod_Manager.Tracing
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Info, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Info, callerFilePath, callerMemberName));
         }
 
-        public void TraceDebug(
+        public void TraceVerbose(
             string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TracingLevel.Debug, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(message, TraceLevel.Verbose, callerFilePath, callerMemberName));
         }
 
         public void Flush()
@@ -177,7 +173,7 @@ namespace Starcraft_Mod_Manager.Tracing
 
             foreach (TraceEvent traceEvent in traceEvents)
             {
-                if (traceEvent.Level > this.TracingLevelThreshold)
+                if (traceEvent.Level > this.TraceLevelThreshold)
                 {
                     continue;
                 }
