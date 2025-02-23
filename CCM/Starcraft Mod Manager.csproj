@@ -70,7 +70,7 @@
     <Compile Include="Components\RichTextBoxTracingService.Designer.cs">
       <DependentUpon>RichTextBoxTracingService.cs</DependentUpon>
     </Compile>
-    <Compile Include="EventArgs\ProgressUpdateEventArgs.cs" />
+    <Compile Include="EventArgs\ProgressBarUpdateEventArgs.cs" />
     <Compile Include="EventArgs\ModDeletedEventArgs.cs" />
     <Compile Include="Components\ModUserControl.cs">
       <SubType>UserControl</SubType>

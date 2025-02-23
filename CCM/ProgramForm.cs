@@ -132,7 +132,7 @@ namespace Starcraft_Mod_Manager
             }
         }
 
-        private void OnProgressUpdate(object sender, ProgressUpdateEventArgs progressUpdateEventArgs)
+        private void OnProgressUpdate(object sender, ProgressBarUpdateEventArgs progressUpdateEventArgs)
         {
             this.progressBar.Visible = progressUpdateEventArgs.Visible;
             this.progressBar.Value = progressUpdateEventArgs.PercentComplete;
@@ -358,7 +358,7 @@ namespace Starcraft_Mod_Manager
             {
                 modUserControl.InitializeComponent(this.TracingService, this.PathUtils, campaign);
                 modUserControl.OnModDeletion += new EventHandler<ModDeletedEventArgs>(this.OnModDeleted);
-                modUserControl.OnProgressUpdate += new EventHandler<ProgressUpdateEventArgs>(this.OnProgressUpdate);
+                modUserControl.OnProgressUpdate += new EventHandler<ProgressBarUpdateEventArgs>(this.OnProgressUpdate);
             }
 
             this.ModsByCampaign = this.GetCustomModsByCampaign();

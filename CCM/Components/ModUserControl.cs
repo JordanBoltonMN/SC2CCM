@@ -31,7 +31,7 @@ namespace Starcraft_Mod_Manager
         }
 
         public event EventHandler<ModDeletedEventArgs> OnModDeletion;
-        public event EventHandler<ProgressUpdateEventArgs> OnProgressUpdate;
+        public event EventHandler<ProgressBarUpdateEventArgs> OnProgressUpdate;
 
         // InitializeComponent properties
 
@@ -144,7 +144,7 @@ namespace Starcraft_Mod_Manager
             Progress<IOProgress> progress = new Progress<IOProgress>(ioProgress =>
             {
                 this.TracingService.TraceEvent(ioProgress.TraceEvent);
-                this.OnProgressUpdate(this, new ProgressUpdateEventArgs(visible: true, ioProgress));
+                this.OnProgressUpdate(this, new ProgressBarUpdateEventArgs(visible: true, ioProgress));
             });
 
             await this.PathUtils.CopyFilesAndFolders(
@@ -154,7 +154,7 @@ namespace Starcraft_Mod_Manager
             );
 
             // Disable the progress bar after we're done copying.
-            this.OnProgressUpdate(this, ProgressUpdateEventArgs.InvisibleInstance);
+            this.OnProgressUpdate(this, ProgressBarUpdateEventArgs.InvisibleInstance);
         }
 
         private void DeleteSelectedMod(Mod mod)
