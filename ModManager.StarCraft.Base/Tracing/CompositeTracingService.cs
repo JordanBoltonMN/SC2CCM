@@ -37,7 +37,7 @@ namespace ModManager.StarCraft.Base
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, level, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(level, message, callerFilePath, callerMemberName));
         }
 
         public void TraceError(
@@ -46,7 +46,7 @@ namespace ModManager.StarCraft.Base
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TraceLevel.Error, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(TraceLevel.Error, message, callerFilePath, callerMemberName));
         }
 
         public void TraceWarning(
@@ -55,7 +55,7 @@ namespace ModManager.StarCraft.Base
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TraceLevel.Warning, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(TraceLevel.Warning, message, callerFilePath, callerMemberName));
         }
 
         public void TraceInfo(
@@ -64,7 +64,7 @@ namespace ModManager.StarCraft.Base
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TraceLevel.Info, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(TraceLevel.Info, message, callerFilePath, callerMemberName));
         }
 
         public void TraceVerbose(
@@ -73,7 +73,7 @@ namespace ModManager.StarCraft.Base
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, TraceLevel.Verbose, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(TraceLevel.Verbose, message, callerFilePath, callerMemberName));
         }
 
         public void Register(ITracingService tracingService)

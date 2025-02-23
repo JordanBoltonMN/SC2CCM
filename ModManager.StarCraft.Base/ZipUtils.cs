@@ -114,8 +114,8 @@ namespace ModManager.StarCraft.Base
                         progress.Report(
                             new IOProgress(
                                 new TraceEvent(
-                                    $"Extracting zip entry '{entry.Name}' to '{destinationPath}'.",
-                                    TraceLevel.Verbose
+                                    TraceLevel.Verbose,
+                                    $"Extracting zip entry '{entry.Name}' to '{destinationPath}'."
                                 ),
                                 numProcessedItems: numFilesProcessed,
                                 numTotalItems: numTotalFiles

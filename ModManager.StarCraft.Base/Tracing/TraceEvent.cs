@@ -8,8 +8,8 @@ namespace ModManager.StarCraft.Base
     public readonly struct TraceEvent
     {
         public TraceEvent(
-            string message,
             TraceLevel tracingLevel,
+            string message,
             [CallerFilePath] string callerFilePath = "",
             [CallerMemberName] string callerMemberName = ""
         )
@@ -19,14 +19,14 @@ namespace ModManager.StarCraft.Base
                 throw new ArgumentException("cannot be Off", nameof(tracingLevel));
             }
 
-            this.Message = message;
             this.Level = tracingLevel;
+            this.Message = message;
             this.Source = $"{Path.GetFileNameWithoutExtension(callerFilePath)}/{callerMemberName}";
             this.TimeStamp = DateTime.Now;
         }
 
-        public string Message { get; }
         public TraceLevel Level { get; }
+        public string Message { get; }
         public string Source { get; }
         public DateTime TimeStamp { get; }
     }

@@ -130,7 +130,7 @@ namespace Starcraft_Mod_Manager.Components
             [CallerMemberName] string callerMemberName = ""
         )
         {
-            this.TraceEvent(new TraceEvent(message, level, callerFilePath, callerMemberName));
+            this.TraceEvent(new TraceEvent(level, message, callerFilePath, callerMemberName));
         }
 
         public void TraceError(

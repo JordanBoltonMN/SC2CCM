@@ -184,7 +184,7 @@ namespace ModManager.StarCraft.Base
                     {
                         progress.Report(
                             new IOProgress(
-                                new TraceEvent($"Creating subdirectory '{targetSubDirectory}'.", TraceLevel.Verbose),
+                                new TraceEvent(TraceLevel.Verbose, $"Creating subdirectory '{targetSubDirectory}'."),
                                 numItemsProcessed,
                                 numTotalItems
                             )
@@ -202,7 +202,7 @@ namespace ModManager.StarCraft.Base
 
                     progress.Report(
                         new IOProgress(
-                            new TraceEvent($"Copying '{sourceFilePath}' to '{targetFilePath}'.", TraceLevel.Verbose),
+                            new TraceEvent(TraceLevel.Verbose, $"Copying '{sourceFilePath}' to '{targetFilePath}'."),
                             numItemsProcessed,
                             numTotalItems
                         )
