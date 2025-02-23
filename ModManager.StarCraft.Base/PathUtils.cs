@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
@@ -106,17 +107,17 @@ namespace ModManager.StarCraft.Base
             return false;
         }
 
-        public void ClearCampaign(Campaign campaign)
+        public async Task ClearCampaign(Campaign campaign, IProgress<IOProgress> progress)
         {
-            this.ClearDirectory(this.GetPathForCampaign(campaign));
+            await this.ClearDirectory(this.GetPathForCampaign(campaign), progress);
 
             if (campaign == Campaign.HotS)
             {
-                this.ClearDirectory(this.PathForCampaignHotSEvolution);
+                await this.ClearDirectory(this.PathForCampaignHotSEvolution, progress);
             }
         }
 
-        public void ClearDirectory(string directory)
+        public async Task ClearDirectory(string directory, IProgress<IOProgress> progress)
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
@@ -127,29 +128,100 @@ namespace ModManager.StarCraft.Base
                 throw new ArgumentException("The argument is not a directory", nameof(directory));
             }
 
-            try
+            await Task.Run(() =>
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(directory);
-
-                foreach (FileInfo fileInfo in directoryInfo.GetFiles())
+                try
                 {
-                    fileInfo.Delete();
-                }
+                    DirectoryInfo directoryInfo = new DirectoryInfo(directory);
+                    FileInfo[] files = directoryInfo.GetFiles();
+                    DirectoryInfo[] subdirectoryInfos = directoryInfo.GetDirectories();
 
-                foreach (DirectoryInfo subdirectoryInfo in directoryInfo.GetDirectories())
-                {
-                    if (this.CampaignDirectories.Contains(subdirectoryInfo.FullName))
+                    int numTotalItems = files.Length + subdirectoryInfos.Length;
+                    int numDeletedItems = 0;
+
+                    // Delete files
+                    foreach (FileInfo fileInfo in files)
                     {
-                        continue;
+                        try
+                        {
+                            fileInfo.Delete();
+                            numDeletedItems++;
+                            progress?.Report(
+                                new IOProgress(
+                                    new TraceEvent(TraceLevel.Verbose, $"Deleted file '{fileInfo.FullName}'."),
+                                    numDeletedItems,
+                                    numTotalItems
+                                )
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            progress?.Report(
+                                new IOProgress(
+                                    new TraceEvent(
+                                        TraceLevel.Verbose,
+                                        $"Failed to delete file '{fileInfo.FullName}'. Message: '{ex.Message}'"
+                                    ),
+                                    numDeletedItems,
+                                    numTotalItems
+                                )
+                            );
+                        }
                     }
 
-                    subdirectoryInfo.Delete(recursive: true);
+                    // Delete directories
+                    foreach (DirectoryInfo subdirectoryInfo in subdirectoryInfos)
+                    {
+                        if (this.CampaignDirectories.Contains(subdirectoryInfo.FullName))
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            subdirectoryInfo.Delete(recursive: true);
+                            numDeletedItems++;
+
+                            progress?.Report(
+                                new IOProgress(
+                                    new TraceEvent(
+                                        TraceLevel.Verbose,
+                                        $"Deleted directory '{subdirectoryInfo.FullName}'."
+                                    ),
+                                    numDeletedItems,
+                                    numTotalItems
+                                )
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            progress?.Report(
+                                new IOProgress(
+                                    new TraceEvent(
+                                        TraceLevel.Verbose,
+                                        $"Failed to delete file '{subdirectoryInfo.FullName}'. Message: '{ex.Message}'"
+                                    ),
+                                    numDeletedItems,
+                                    numTotalItems
+                                )
+                            );
+                        }
+                    }
                 }
-            }
-            catch
-            {
-                this.TracingService.TraceWarning($"Failed to delete directory '{directory}'");
-            }
+                catch (Exception ex)
+                {
+                    progress?.Report(
+                        new IOProgress(
+                            new TraceEvent(
+                                TraceLevel.Verbose,
+                                $"Unknown error when attempting to clear directory '{directory}'. Message: '{ex.Message}'"
+                            ),
+                            0,
+                            0
+                        )
+                    );
+                }
+            });
         }
 
         public async Task CopyFilesAndFolders(

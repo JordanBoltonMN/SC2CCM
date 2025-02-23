@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModManager.StarCraft.Base;
 
@@ -63,7 +65,7 @@ namespace Starcraft_Mod_Manager
             this.SetActiveMod(selectedMod, shouldCopyModFiles: true);
         }
 
-        private void OnDeleteButtonClick(object sender, EventArgs e)
+        private async void OnDeleteButtonClick(object sender, EventArgs e)
         {
             Mod selectedMod = this.GetSelectedMod();
 
@@ -72,13 +74,13 @@ namespace Starcraft_Mod_Manager
                 return;
             }
 
-            this.DeleteSelectedMod(selectedMod);
+            await this.DeleteSelectedMod(selectedMod);
             this.OnModDeletion(this, new ModDeletedEventArgs(this.Campaign, selectedMod));
         }
 
-        private void OnRestoreButtonClick(object sender, EventArgs e)
+        private async void OnRestoreButtonClick(object sender, EventArgs e)
         {
-            this.ClearCampaignDirectory();
+            await this.ClearCampaignDirectory();
             this.RefreshActiveModText();
         }
 
@@ -129,35 +131,79 @@ namespace Starcraft_Mod_Manager
 
         // Private
 
-        private void ClearCampaignDirectory()
+        private async Task ClearCampaignDirectory()
         {
-            this.TracingService.TraceVerbose($"Attempting to clear campaign directory for '{this.Campaign}'.");
-            this.PathUtils.ClearCampaign(this.Campaign);
+            await this.ClearDirectory(
+                $"Attempting to clear campaign directory for '{this.Campaign}'.",
+                this.PathUtils.GetPathForCampaign(this.Campaign)
+            );
+
+            if (this.Campaign == Campaign.HotS)
+            {
+                await this.ClearDirectory(
+                    $"Attempting to clear campaign directory for '{this.Campaign}' (Evolution missions).",
+                    this.PathUtils.PathForCampaignHotSEvolution
+                );
+            }
+        }
+
+        private async Task ClearDirectory(string message, string directory)
+        {
+            this.TracingService.TraceInfo(message);
+
+            Progress<IOProgress> progress = new Progress<IOProgress>(ioProgress =>
+            {
+                this.TracingService.TraceEvent(ioProgress.TraceEvent);
+                this.OnProgressUpdate(
+                    this,
+                    new ProgressBarUpdateEventArgs(
+                        visible: ioProgress.TraceEvent.Level != TraceLevel.Warning,
+                        ioProgress
+                    )
+                );
+            });
+
+            await this.PathUtils.ClearDirectory(directory, progress);
+
+            this.OnProgressUpdate(this, ProgressBarUpdateEventArgs.InvisibleInstance);
+        }
+
+        private async Task CopyDirectory(string message, string sourceDirectory, string targetDirectory)
+        {
+            this.TracingService.TraceInfo(message);
+
+            Progress<IOProgress> progress = new Progress<IOProgress>(ioProgress =>
+            {
+                this.TracingService.TraceEvent(ioProgress.TraceEvent);
+                this.OnProgressUpdate(
+                    this,
+                    new ProgressBarUpdateEventArgs(
+                        visible: ioProgress.TraceEvent.Level != TraceLevel.Warning,
+                        ioProgress
+                    )
+                );
+            });
+
+            await this.PathUtils.CopyFilesAndFolders(sourceDirectory, targetDirectory, progress);
+
+            // Disable the progress bar after we're done copying.
+            this.OnProgressUpdate(this, ProgressBarUpdateEventArgs.InvisibleInstance);
         }
 
         private async void CopyModFiles(Mod mod)
         {
             this.TracingService.TraceVerbose($"Copying files for '{mod.ToTraceableString()}' for '{this.Campaign}'.");
 
-            this.ClearCampaignDirectory();
+            await this.ClearCampaignDirectory();
 
-            Progress<IOProgress> progress = new Progress<IOProgress>(ioProgress =>
-            {
-                this.TracingService.TraceEvent(ioProgress.TraceEvent);
-                this.OnProgressUpdate(this, new ProgressBarUpdateEventArgs(visible: true, ioProgress));
-            });
-
-            await this.PathUtils.CopyFilesAndFolders(
+            await this.CopyDirectory(
+                $"Copying files for '{mod.ToTraceableString()}' for '{this.Campaign}'.",
                 Path.GetDirectoryName(mod.MetadataFilePath),
-                this.PathUtils.GetPathForCampaign(this.Campaign),
-                progress
+                this.PathUtils.GetPathForCampaign(this.Campaign)
             );
-
-            // Disable the progress bar after we're done copying.
-            this.OnProgressUpdate(this, ProgressBarUpdateEventArgs.InvisibleInstance);
         }
 
-        private void DeleteSelectedMod(Mod mod)
+        private async Task DeleteSelectedMod(Mod mod)
         {
             if (!Prompter.AskYesNo($"Are you sure you want to delete '{mod}'?"))
             {
@@ -172,12 +218,18 @@ namespace Starcraft_Mod_Manager
 
             if (isActiveMod)
             {
-                this.ClearCampaignDirectory();
+                await this.ClearCampaignDirectory();
                 this.ActiveMod = null;
             }
 
-            this.PathUtils.ClearDirectory(
-                this.PathUtils.GetImmediateSubdirectory(mod.MetadataFilePath, this.PathUtils.PathForCustomCampaigns)
+            string directoryToClear = this.PathUtils.GetImmediateSubdirectory(
+                mod.MetadataFilePath,
+                this.PathUtils.PathForCustomCampaigns
+            );
+
+            await this.ClearDirectory(
+                $"Deleting fiels for mod '{mod.ToTraceableString()}' under '{directoryToClear}'.",
+                directoryToClear
             );
 
             this.modSelectDropdown.Items.Remove(mod);
