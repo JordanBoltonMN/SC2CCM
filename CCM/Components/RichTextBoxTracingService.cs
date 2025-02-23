@@ -19,7 +19,7 @@ namespace Starcraft_Mod_Manager.Components
     // This keeps a copy of every TraceEvent.
     // The lifetime of the app should be low enough to not be a problem.
     // However, it should still be called out.
-    public partial class RichTextBoxTracingService : UserControl, ITracingService
+    public partial class RichTextBoxTracingService : UserControl, IDisposable, ITracingService
     {
         public RichTextBoxTracingService()
         {
@@ -47,6 +47,12 @@ namespace Starcraft_Mod_Manager.Components
                 }
             );
             this.logVerbosityDropdown.SelectedItem = TraceLevel.Info.ToString();
+        }
+
+        public new void Dispose()
+        {
+            this.FlushTimer.Dispose();
+            base.Dispose();
         }
 
         private List<TraceEvent> AllTraceEvents { get; }
@@ -210,7 +216,11 @@ namespace Starcraft_Mod_Manager.Components
                 int indexOfColorDef = this.RtfColorTable.GetColorIndex(traceEvent.Level);
 
                 // Escape the following: '\', '{', and '}'
-                string escapedMessage = traceEvent.Message.Replace(@"\", @"\\").Replace("{", @"\{").Replace("}", @"\}");
+                string escapedMessage = traceEvent
+                    .Message.ToTraceableString()
+                    .Replace(@"\", @"\\")
+                    .Replace("{", @"\{")
+                    .Replace("}", @"\}");
 
                 stringBuilder.AppendLine(
                     // $"\\cf{indexOfColorDef} Hello world \\par"
