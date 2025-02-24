@@ -8,8 +8,16 @@ namespace ModManager.StarCraft.Base
 {
     public class RollingFileLogger : IDisposable, ITracingService
     {
-        public RollingFileLogger(string outputDirectory, string outputFileNamePrefix, long maxFileSizeInBytes)
+        public RollingFileLogger(
+            Guid sessionId,
+            string outputDirectory,
+            string outputFileNamePrefix,
+            long maxFileSizeInBytes
+        )
         {
+            this.LockObject = new object();
+            this.SessionId = sessionId;
+
             this.OutputDirectory = outputDirectory;
             this.OutputFileNamePrefix = outputFileNamePrefix;
             this.MaxFileSizeBytes = maxFileSizeInBytes;
@@ -19,13 +27,20 @@ namespace ModManager.StarCraft.Base
 
         // Configuration
         private string OutputDirectory { get; }
+
         private string OutputFileNamePrefix { get; }
+
         private long MaxFileSizeBytes { get; } // e.g., 100_000_000 for ~100 MB
 
         // State
-        private readonly object LockObject = new object();
+        private object LockObject { get; }
+
+        private Guid SessionId { get; }
+
         private StreamWriter OutputWriter { get; set; }
+
         private string CurrentOutputFilePath { get; set; }
+
         private long CurrentFileSizeInBytes { get; set; }
 
         public void TraceEvent(TraceEvent traceEvent)
@@ -123,8 +138,17 @@ namespace ModManager.StarCraft.Base
                 counter++;
             }
 
-            this.OutputWriter = new StreamWriter(this.CurrentOutputFilePath, append: false);
-            this.CurrentFileSizeInBytes = 0;
+            string sessionId = this.SessionId.ToString();
+
+            this.OutputWriter = new StreamWriter(
+                this.CurrentOutputFilePath,
+                append: false,
+                encoding: UTF8Encoding.UTF8
+            );
+
+            this.OutputWriter.WriteLine($"Log for SessionId '{sessionId}'.");
+
+            this.CurrentFileSizeInBytes = Encoding.UTF8.GetByteCount(sessionId);
         }
 
         public void Dispose()

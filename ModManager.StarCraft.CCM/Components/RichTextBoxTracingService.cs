@@ -25,10 +25,12 @@ namespace Starcraft_Mod_Manager.Components
         {
             this.InitializeComponent();
 
+            this.LockObject = new object();
+
             this.AllTraceEvents = new List<TraceEvent>();
             this.PendingTraceEventQueue = new Queue<TraceEvent>();
             this.QueueThreshold = 100;
-            this.LockObject = new object();
+
             this.RtfBody = string.Empty;
             this.RtfColorTable = new ColorTable<TraceLevel>(Color.Black, traceLevel => traceLevel.ToColor());
 
@@ -55,6 +57,8 @@ namespace Starcraft_Mod_Manager.Components
             base.Dispose();
         }
 
+        private object LockObject { get; }
+
         private List<TraceEvent> AllTraceEvents { get; }
 
         private Queue<TraceEvent> PendingTraceEventQueue { get; set; }
@@ -62,8 +66,6 @@ namespace Starcraft_Mod_Manager.Components
         private int QueueThreshold { get; }
 
         private TraceLevel TraceLevelThreshold { get; set; }
-
-        private object LockObject { get; }
 
         private string RtfBody { get; set; }
 

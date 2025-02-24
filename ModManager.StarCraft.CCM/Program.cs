@@ -19,6 +19,7 @@ namespace Starcraft_Mod_Manager
             Application.Run(
                 new ProgramForm(
                     new RollingFileLogger(
+                        Guid.NewGuid(),
                         Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "SCC",
                         1024 * 1024 * 100 /* 100 megabyte */
